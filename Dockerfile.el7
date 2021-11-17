@@ -108,3 +108,11 @@ FROM amazonlinux:${AMZN_VERSION}
 
 COPY --from=repo /root/repo /repo
 WORKDIR /repo
+
+ARG SPEL_REPO_S3_BUCKET
+ENV SPEL_REPO_S3_BUCKET ${SPEL_REPO_S3_BUCKET}
+
+RUN if [[ -n "${SPEL_REPO_S3_BUCKET}" ]]; then \
+        aws s3 sync /repo/ s3://${SPEL_REPO_S3_BUCKET}/el${SPEL_RELEASE_VERSION}/ \
+        && aws s3 cp /repo/noarch/spel-release-*.rpm s3://${SPEL_REPO_S3_BUCKET}/spel-release-latest-${SPEL_RELEASE_VERSION}.noarch.rpm ; \
+    fi

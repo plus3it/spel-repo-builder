@@ -1,0 +1,3 @@
+FROM hairyhenderson/gomplate:v3.10.0
+
+FROM plus3it/tardigrade-ci:0.19.3

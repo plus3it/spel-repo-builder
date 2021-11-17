@@ -16,3 +16,7 @@ __pycache__
 *.log
 yum-chroot.conf
 *.rpm
+
+# tardigrade-ci
+.tardigrade-ci
+tardigrade-ci/

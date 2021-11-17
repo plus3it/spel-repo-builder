@@ -1,4 +1,7 @@
 ARG AMZN_VERSION=2
+ARG CENTOS_VERSION=8
+ARG GOMPLATE_VERSION=stable
+
 FROM amazonlinux:${AMZN_VERSION} as amznlinux
 
 WORKDIR /amznsrpms
@@ -14,13 +17,14 @@ RUN yum install -y yum-utils \
         --exclude amazon-linux-extras,amazon-linux-extras-yum-plugin,amazon-linux-onprem,amazonlinux-indexhtml,aws-cfn-bootstrap,aws-cli-plugin-cloudwatch-logs,awscli,awslogs,ec2sys-autotune \
         amazon\* aws\* ec2\*
 
-FROM centos:8 as repo
+FROM hairyhenderson/gomplate:${GOMPLATE_VERSION} as gomplate
+
+FROM centos:${CENTOS_VERSION} as repo
 
 WORKDIR /root
 
 # Install basic packaging tools
-RUN yum update -y \
-    && yum install -y \
+RUN yum install -y \
         createrepo \
         drpm \
         rpmdevtools \
@@ -61,14 +65,11 @@ RUN for SRPM in /root/amznsrpms/*.src.rpm ; do \
     done
 
 # Template spel-repo packages using gomplate
-RUN yum install -y \
-    git \
-    jq
+COPY --from=gomplate /gomplate /bin/gomplate
 
-COPY Makefile Dockerfile.tools /root/spel-repo-builder/
+COPY Dockerfile.tools /root/spel-repo-builder/
 COPY package-templates /root/spel-repo-builder/package-templates
 COPY LICENSE /root/spel-repo-builder/package-templates/spel-release
-RUN make -C /root/spel-repo-builder/ gomplate/install
 
 ARG SPEL_RELEASE_BASEURL
 ARG SPEL_RELEASE_RELEASE=2
@@ -76,7 +77,7 @@ ENV SPEL_RELEASE_BASEURL ${SPEL_RELEASE_BASEURL}
 ENV SPEL_RELEASE_RELEASE ${SPEL_RELEASE_RELEASE}
 ENV SPEL_RELEASE_VERSION 8
 
-RUN /root/bin/gomplate --input-dir /root/spel-repo-builder/package-templates --output-dir /root/spel-packages
+RUN gomplate --input-dir /root/spel-repo-builder/package-templates --output-dir /root/spel-packages
 
 # Build all spel-repo packages
 RUN for PKG in $(find /root/spel-packages/* -type d) ; do \
@@ -99,7 +100,7 @@ RUN install -Ddm 000755 /root/repo/packages/ \
     && createrepo --update /root/repo
 
 # Test the yum repo and packages built
-RUN SPEL_RELEASE_BASEURL=file:///root/repo/ /root/bin/gomplate --file /root/spel-repo-builder/package-templates/spel-release/spel.repo --out /etc/yum.repos.d/spel.repo \
+RUN SPEL_RELEASE_BASEURL=file:///root/repo/ gomplate --file /root/spel-repo-builder/package-templates/spel-release/spel.repo --out /etc/yum.repos.d/spel.repo \
     && PACKAGES_BUILT=($(find RPMS/ -name *.rpm -type f -printf "%f ")) \
     && for PACKAGE in "${PACKAGES_BUILT[@]%%.rpm}" ; do yum install -y $PACKAGE || exit $? ; done
 

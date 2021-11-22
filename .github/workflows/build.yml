@@ -6,6 +6,10 @@ on:
   # Run pull requests against the main branch
   pull_request:
     branches: [main]
+    paths:
+      - 'Dockerfile.*'
+      - '.github/workflows/build.yml'
+      - 'package-templates/**'
 
   # Run when a release is created
   release:

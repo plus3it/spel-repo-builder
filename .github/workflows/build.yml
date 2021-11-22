@@ -112,4 +112,11 @@ jobs:
           aws-region: us-east-1
 
       - name:  Validate credential
+        if: github.event_name != 'pull_request'
         run: aws sts get-caller-identity
+
+      - name: Push repo to s3 bucket
+        if: github.event_name != 'pull_request'
+        run: |
+          aws s3 sync --delete ./{{ env.REPO_PATH }}/ s3://{{ env.REPO_BUCKET }}/repo/el{{ matrix.el_version }}/
+          aws s3 cp ./{{ env.REPO_PATH }}/packages/noarch/spel-release-*.rpm s3://{{ env.REPO_BUCKET }}/repo/spel-release-latest-{{ matrix.el_version }}.noarch.rpm

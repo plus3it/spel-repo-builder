@@ -1,0 +1,28 @@
+name: Create GitHub Release
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@ec3a7ce113134d7a93b817d10a8272cb61118579
+      - name: Test release condition
+        id: release
+        run: |
+          RELEASE=false
+          if make release/test 2> /dev/null; then RELEASE=true; fi
+          echo "::set-output name=condition::${RELEASE}"
+          echo "::set-output name=version::$(make release/version)"
+      - name: Create release
+        if: ${{ step.release.outputs.condition == "true" }}
+        uses: softprops/action-gh-release@1e07f4398721186383de40550babbdf2b84acfc5
+        with:
+          name: ${{ step.release.outputs.version }}
+          tag_name:  ${{ step.release.outputs.version }}
+          generate_release_notes: true
+          target_commitish: ${{ env.GITHUB_REF }}

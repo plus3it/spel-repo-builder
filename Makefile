@@ -14,7 +14,7 @@ gomplate/install: | $(BIN_DIR)
 gomplate/version:
 	@ echo $(GOMPLATE_VERSION_PIN)
 
-amazonlinux/%: AMAZONLINUX_VERSION ?= $(call match_pattern_in_file,$(DOCKERFILE_AMZN2),'amazonlinux','2\..*')
+amazonlinux/% release/%: AMAZONLINUX_VERSION ?= $(call match_pattern_in_file,$(DOCKERFILE_AMZN2),'amazonlinux','2\..*')
 amazonlinux/version:
 	@ echo $(AMAZONLINUX_VERSION)
 
@@ -25,3 +25,12 @@ centos8/version:
 centos7/%: CENTOS7_VERSION ?= $(call match_pattern_in_file,$(DOCKERFILE_TOOLS),'centos:7','7@sha256:.*')
 centos7/version:
 	@ echo $(CENTOS7_VERSION)
+
+release/%: PRIOR_VERSION = $(shell git describe --abbrev=0 --tags 2> /dev/null)
+release/%: RELEASE_VERSION = $(AMAZONLINUX_VERSION)
+
+release/test:
+	test "$(PRIOR_VERSION)" != "$(RELEASE_VERSION)"
+
+release/version:
+	@ echo $(RELEASE_VERSION)

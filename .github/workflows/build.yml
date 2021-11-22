@@ -1,0 +1,115 @@
+name: Spel repo builder
+on:
+  # Run on demand
+  workflow_dispatch:
+
+  # Run pull requests against the main branch
+  pull_request:
+    branches: [main]
+
+  # Run when a release is created
+  release:
+    types: [released]
+
+permissions:
+  id-token: write
+
+jobs:
+  BuildRepo:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        el_version: [7, 8]
+    env:
+      REPO_ENDPOINT: https://spel-packages.cloudarmor.io
+      REPO_BUCKET: spel-packages
+      REPO_PREFIX: repo
+      GPG_NAME: SPEL Packages <spel-packages@plus3it.com>
+      DOCKER_NAME: spel-packages-el{{ matrix.el_version }}
+      REPO_PATH: .repo/el{{ matrix.el_version }}
+    steps:
+      - name: Clone this git repository
+        uses: actions/checkout@v2
+
+      - name: Retrieve existing spel-packages yum repo
+        run: aws s3 sync --no-sign-request --exact-timestamps --endpoint-url ${{ env.REPO_ENDPOINT }} s3://${{ env.REPO_BUCKET }}/${{ env.REPO_PREFIX }} ./{{ env.REPO_PATH }}
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@94ab11c41e45d028884a99163086648e898eed25
+
+      - name: Build el{{ matrix.el_version }} repo
+        uses: docker/build-push-action@a66e35b9cbcf4ad0ea91ffcaf7bbad63ad9e0229
+        with:
+          file: Dockerfile.el{{ matrix.el_version }}
+          load: true
+          tags: {{ env.DOCKER_NAME }}
+          build-args: |
+            AMZN_VERSION=2
+            CENTOS_VERSION={{ matrix.el_version }}
+            GOMPLATE_VERSION=stable
+            SPEL_RELEASE_BASEURL=${{ env.REPO_ENDPOINT }}/${{ env.REPO_PREFIX }}/el$releasever
+
+      - name: Copy built packages to host
+        run: |
+          docker run -dit --rm \
+            --name {{ env.DOCKER_NAME }} \
+            {{ env.DOCKER_NAME }}
+          docker cp {{ env.DOCKER_NAME }}:/spel-packages/builder/repo/. ./{{ env.REPO_PATH }}/
+
+      - name: Import GPG key
+        if: github.event_name != 'pull_request'
+        id: import_gpg
+        uses: crazy-max/ghaction-import-gpg@cb4264d3319acaa2bea23d51ef67f80b4f775013
+        with:
+          gpg_private_key: ${{ secrets.GPG_PRIVATE_KEY }}
+          passphrase: ${{ secrets.GPG_PASSPHRASE }}
+
+      - name: Sign packages
+        if: github.event_name != 'pull_request'
+        run: |
+          rpmsign --addsign \
+            --define='%_gpg_name ${{ env.GPG_NAME }}' \
+            --define='%_signature gpg' \
+            $(find ./{{ env.REPO_PATH }}/packages -name *.rpm -type f)
+
+      - name: Create yum repo and copy repodata to host
+        run: |
+          rm -rf ./{{ env.REPO_PATH }}/repodata
+          docker cp ./{{ env.REPO_PATH }} {{ env.DOCKER_NAME }}:/spel-packages/repo
+          docker exec {{ env.DOCKER_NAME }} createrepo /spel-packages/repo
+          docker cp {{ env.DOCKER_NAME }}:/spel-packages/repo/repodata ./{{ env.REPO_PATH }}/
+
+      - name: Sign yum repodata
+        if: github.event_name != 'pull_request'
+        run: |
+          gpg --batch --yes \
+            --detach-sign --armor \
+            -u '${{ env.GPG_NAME }}' \
+            ./{{ env.REPO_PATH }}/repodata/repomd.xml
+          docker cp ./{{ env.REPO_PATH }}/repodata/repomd.xml.asc {{ env.DOCKER_NAME }}:/spel-packages/repo/repodata
+
+      - name: Test signed packages and yum repo
+        if: github.event_name != 'pull_request'
+        run: |
+          docker exec \
+            {{ env.DOCKER_NAME }} \
+            bash -c 'yum install -y --setopt=skip_missing_names_on_install=False $(<packages-built)'
+          docker stop {{ env.DOCKER_NAME }}
+
+      - name: Test unsigned packages and yum repo
+        if: github.event_name == 'pull_request'
+        run: |
+          docker exec \
+            {{ env.DOCKER_NAME }} \
+            bash -c 'yum install -y --nogpgcheck --setopt=skip_missing_names_on_install=False $(<packages-built)'
+          docker stop {{ env.DOCKER_NAME }}
+
+      - name: configure aws credentials
+        if: github.event_name != 'pull_request'
+        uses: aws-actions/configure-aws-credentials@master
+        with:
+          role-to-assume: arn:aws:iam::{{ secrets.AWS_ACCOUNT_ID }}:role/{{ secrets.AWS_ROLE_NAME }}
+          aws-region: us-east-1
+
+      - name:  Validate credential
+        run: aws sts get-caller-identity

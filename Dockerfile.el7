@@ -19,14 +19,12 @@ RUN yum install -y yum-utils \
 
 FROM hairyhenderson/gomplate:${GOMPLATE_VERSION} as gomplate
 
-FROM centos:${CENTOS_VERSION} as repo
+FROM centos:${CENTOS_VERSION} as builder
 
 WORKDIR /root
 
 # Install basic packaging tools
 RUN yum install -y \
-        createrepo \
-        deltarpm \
         rpmdevtools \
         rpmlint
 
@@ -96,22 +94,21 @@ RUN install -Ddm 000755 /root/repo/packages/ \
     && install -Ddm 000755 /root/repo/srpms/ \
     && cp -rlnv RPMS/* /root/repo/packages \
     && cp -rlnv SRPMS/* /root/repo/srpms \
-    && createrepo --update /root/repo
+    && rm -rf /root/repo/repodata
 
-# Test the yum repo and packages built
-RUN SPEL_RELEASE_BASEURL=file:///root/repo/ gomplate --file /root/spel-repo-builder/package-templates/spel-release/spel.repo --out /etc/yum.repos.d/spel.repo \
+# Template the spel-repo for local testing
+RUN SPEL_RELEASE_BASEURL=file:///spel-packages/repo/ gomplate --file /root/spel-repo-builder/package-templates/spel-release/spel.repo --out /root/spel.repo \
     && PACKAGES_BUILT=($(find RPMS/ -name *.rpm -type f -printf "%f ")) \
-    && for PACKAGE in "${PACKAGES_BUILT[@]%%.rpm}" ; do yum install -y $PACKAGE || exit $? ; done
+    && echo "${PACKAGES_BUILT[@]%%.rpm}" > /root/packages-built
 
-FROM amazonlinux:${AMZN_VERSION}
+FROM centos:${CENTOS_VERSION}
 
-COPY --from=repo /root/repo /repo
-WORKDIR /repo
+COPY --from=builder /root/repo /spel-packages/builder/repo
+COPY --from=builder /root/spel.repo /etc/yum.repos.d/
+COPY --from=builder /root/packages-built /spel-packages/
+COPY package-templates/spel-release/RPM-GPG-KEY-SPEL /etc/pki/rpm-gpg/
+WORKDIR /spel-packages
 
-ARG SPEL_REPO_S3_BUCKET
-ENV SPEL_REPO_S3_BUCKET ${SPEL_REPO_S3_BUCKET}
-
-RUN if [[ -n "${SPEL_REPO_S3_BUCKET}" ]]; then \
-        aws s3 sync /repo/ s3://${SPEL_REPO_S3_BUCKET}/el${SPEL_RELEASE_VERSION}/ \
-        && aws s3 cp /repo/noarch/spel-release-*.rpm s3://${SPEL_REPO_S3_BUCKET}/spel-release-latest-${SPEL_RELEASE_VERSION}.noarch.rpm ; \
-    fi
+RUN yum install -y \
+        createrepo \
+    && yum clean all

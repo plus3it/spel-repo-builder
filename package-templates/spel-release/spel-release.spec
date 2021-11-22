@@ -9,7 +9,7 @@ URL:            https://github.com/plus3it/spel/
 Vendor:         Plus3 IT Systems
 Packager:       Plus3 IT Systems <spel@plus3it.com>
 
-# Source0:        {{.Env.SPEL_RELEASE_BASEURL}}/RPM-GPG-KEY-SPEL
+Source0:        RPM-GPG-KEY-SPEL
 Source1:        LICENSE
 Source2:        spel.repo
 Source3:        spel-release
@@ -25,7 +25,7 @@ GPG key as well as configuration for yum.
 
 %prep
 %setup -q  -c -T
-#install -pm 644 %{SOURCE0} .
+install -pm 644 %{SOURCE0} .
 install -pm 644 %{SOURCE1} .
 
 %build
@@ -33,9 +33,9 @@ install -pm 644 %{SOURCE1} .
 %install
 rm -rf $RPM_BUILD_ROOT
 
-#GPG Key
-# install -Dpm 644 %{SOURCE0} \
-#   $RPM_BUILD_ROOT%{_sysconfdir}/pki/rpm-gpg/RPM-GPG-KEY-SPEL
+# GPG Key
+ install -Dpm 644 %{SOURCE0} \
+   $RPM_BUILD_ROOT%{_sysconfdir}/pki/rpm-gpg/RPM-GPG-KEY-SPEL
 
 # yum
 install -dm 755 $RPM_BUILD_ROOT%{_sysconfdir}/yum.repos.d
@@ -52,11 +52,11 @@ rm -rf $RPM_BUILD_ROOT
 %doc LICENSE
 %ghost /etc/spel-release
 %config(noreplace) /etc/yum.repos.d/*
-#/etc/pki/rpm-gpg/*
+/etc/pki/rpm-gpg/*
 
 %changelog
 * Tue Nov 02 2021 Loren Gordon <loren.gordon@plus3it.com>
-- Rework packaging and repo automation using packer
+- Rework packaging and repo automation using docker
 
 * Thu Jul 18 2019 Thomas H Jones II <thomas.jones@plus3it.com>
 - Initial packaging of spel-related repo definitions

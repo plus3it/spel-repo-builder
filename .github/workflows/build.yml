@@ -25,36 +25,36 @@ jobs:
       REPO_BUCKET: spel-packages
       REPO_PREFIX: repo
       GPG_NAME: SPEL Packages <spel-packages@plus3it.com>
-      DOCKER_NAME: spel-packages-el{{ matrix.el_version }}
-      REPO_PATH: .repo/el{{ matrix.el_version }}
+      DOCKER_NAME: spel-packages-el${{ matrix.el_version }}
+      REPO_PATH: .repo/el${{ matrix.el_version }}
     steps:
       - name: Clone this git repository
         uses: actions/checkout@v2
 
       - name: Retrieve existing spel-packages yum repo
-        run: aws s3 sync --no-sign-request --exact-timestamps --endpoint-url ${{ env.REPO_ENDPOINT }} s3://${{ env.REPO_BUCKET }}/${{ env.REPO_PREFIX }} ./{{ env.REPO_PATH }}
+        run: aws s3 sync --no-sign-request --exact-timestamps --endpoint-url ${{ env.REPO_ENDPOINT }} s3://${{ env.REPO_BUCKET }}/${{ env.REPO_PREFIX }} ./${{ env.REPO_PATH }}
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@94ab11c41e45d028884a99163086648e898eed25
 
-      - name: Build el{{ matrix.el_version }} repo
+      - name: Build el${{ matrix.el_version }} repo
         uses: docker/build-push-action@a66e35b9cbcf4ad0ea91ffcaf7bbad63ad9e0229
         with:
-          file: Dockerfile.el{{ matrix.el_version }}
+          file: Dockerfile.el${{ matrix.el_version }}
           load: true
-          tags: {{ env.DOCKER_NAME }}
+          tags: ${{ env.DOCKER_NAME }}
           build-args: |
             AMZN_VERSION=2
-            CENTOS_VERSION={{ matrix.el_version }}
+            CENTOS_VERSION=${{ matrix.el_version }}
             GOMPLATE_VERSION=stable
             SPEL_RELEASE_BASEURL=${{ env.REPO_ENDPOINT }}/${{ env.REPO_PREFIX }}/el$releasever
 
       - name: Copy built packages to host
         run: |
           docker run -dit --rm \
-            --name {{ env.DOCKER_NAME }} \
-            {{ env.DOCKER_NAME }}
-          docker cp {{ env.DOCKER_NAME }}:/spel-packages/builder/repo/. ./{{ env.REPO_PATH }}/
+            --name ${{ env.DOCKER_NAME }} \
+            ${{ env.DOCKER_NAME }}
+          docker cp ${{ env.DOCKER_NAME }}:/spel-packages/builder/repo/. ./${{ env.REPO_PATH }}/
 
       - name: Import GPG key
         if: github.event_name != 'pull_request'
@@ -70,14 +70,14 @@ jobs:
           rpmsign --addsign \
             --define='%_gpg_name ${{ env.GPG_NAME }}' \
             --define='%_signature gpg' \
-            $(find ./{{ env.REPO_PATH }}/packages -name *.rpm -type f)
+            $(find ./${{ env.REPO_PATH }}/packages -name *.rpm -type f)
 
       - name: Create yum repo and copy repodata to host
         run: |
-          rm -rf ./{{ env.REPO_PATH }}/repodata
-          docker cp ./{{ env.REPO_PATH }} {{ env.DOCKER_NAME }}:/spel-packages/repo
-          docker exec {{ env.DOCKER_NAME }} createrepo /spel-packages/repo
-          docker cp {{ env.DOCKER_NAME }}:/spel-packages/repo/repodata ./{{ env.REPO_PATH }}/
+          rm -rf ./${{ env.REPO_PATH }}/repodata
+          docker cp ./${{ env.REPO_PATH }} ${{ env.DOCKER_NAME }}:/spel-packages/repo
+          docker exec ${{ env.DOCKER_NAME }} createrepo /spel-packages/repo
+          docker cp ${{ env.DOCKER_NAME }}:/spel-packages/repo/repodata ./${{ env.REPO_PATH }}/
 
       - name: Sign yum repodata
         if: github.event_name != 'pull_request'
@@ -85,30 +85,30 @@ jobs:
           gpg --batch --yes \
             --detach-sign --armor \
             -u '${{ env.GPG_NAME }}' \
-            ./{{ env.REPO_PATH }}/repodata/repomd.xml
-          docker cp ./{{ env.REPO_PATH }}/repodata/repomd.xml.asc {{ env.DOCKER_NAME }}:/spel-packages/repo/repodata
+            ./${{ env.REPO_PATH }}/repodata/repomd.xml
+          docker cp ./${{ env.REPO_PATH }}/repodata/repomd.xml.asc ${{ env.DOCKER_NAME }}:/spel-packages/repo/repodata
 
       - name: Test signed packages and yum repo
         if: github.event_name != 'pull_request'
         run: |
           docker exec \
-            {{ env.DOCKER_NAME }} \
+            ${{ env.DOCKER_NAME }} \
             bash -c 'yum install -y --setopt=skip_missing_names_on_install=False $(<packages-built)'
-          docker stop {{ env.DOCKER_NAME }}
+          docker stop ${{ env.DOCKER_NAME }}
 
       - name: Test unsigned packages and yum repo
         if: github.event_name == 'pull_request'
         run: |
           docker exec \
-            {{ env.DOCKER_NAME }} \
+            ${{ env.DOCKER_NAME }} \
             bash -c 'yum install -y --nogpgcheck --setopt=skip_missing_names_on_install=False $(<packages-built)'
-          docker stop {{ env.DOCKER_NAME }}
+          docker stop ${{ env.DOCKER_NAME }}
 
       - name: configure aws credentials
         if: github.event_name != 'pull_request'
         uses: aws-actions/configure-aws-credentials@master
         with:
-          role-to-assume: arn:aws:iam::{{ secrets.AWS_ACCOUNT_ID }}:role/{{ secrets.AWS_ROLE_NAME }}
+          role-to-assume: arn:aws:iam::${{ secrets.AWS_ACCOUNT_ID }}:role/${{ secrets.AWS_ROLE_NAME }}
           aws-region: us-east-1
 
       - name:  Validate credential
@@ -118,5 +118,5 @@ jobs:
       - name: Push repo to s3 bucket
         if: github.event_name != 'pull_request'
         run: |
-          aws s3 sync --delete ./{{ env.REPO_PATH }}/ s3://{{ env.REPO_BUCKET }}/repo/el{{ matrix.el_version }}/
-          aws s3 cp ./{{ env.REPO_PATH }}/packages/noarch/spel-release-*.rpm s3://{{ env.REPO_BUCKET }}/repo/spel-release-latest-{{ matrix.el_version }}.noarch.rpm
+          aws s3 sync --delete ./${{ env.REPO_PATH }}/ s3://${{ env.REPO_BUCKET }}/repo/el${{ matrix.el_version }}/
+          aws s3 cp ./${{ env.REPO_PATH }}/packages/noarch/spel-release-*.rpm s3://${{ env.REPO_BUCKET }}/repo/spel-release-latest-${{ matrix.el_version }}.noarch.rpm

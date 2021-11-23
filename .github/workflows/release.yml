@@ -1,9 +1,15 @@
 name: Create GitHub Release
 
 on:
+  # Run on demand
+  workflow_dispatch:
+
+  # Run on push to main when amzn2 version is updated
   push:
     branches:
       - main
+    files:
+      - Dockerfile.amzn2
 
 jobs:
   release:

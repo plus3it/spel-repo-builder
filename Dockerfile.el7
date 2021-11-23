@@ -21,6 +21,7 @@ FROM hairyhenderson/gomplate:${GOMPLATE_VERSION} as gomplate
 
 FROM centos:${CENTOS_VERSION} as builder
 
+ARG EPEL_RELEASE_URL=https://dl.fedoraproject.org/pub/epel/epel-release-latest-7.noarch.rpm
 WORKDIR /root
 
 # Install basic packaging tools
@@ -40,7 +41,7 @@ RUN yum install -y \
         pytest
 
 # Install requirements for building amznlinux srpms from epel repos
-RUN yum install -y https://dl.fedoraproject.org/pub/epel/epel-release-latest-7.noarch.rpm \
+RUN yum install -y ${EPEL_RELEASE_URL} \
     && yum install -y --enablerepo=epel golang
 
 # Setup the rpmbuild tree

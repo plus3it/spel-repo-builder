@@ -1,5 +1,6 @@
 # Project settings
 *.rpm
+.repo/
 repodata/
 packages/
 srpms/

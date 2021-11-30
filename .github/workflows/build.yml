@@ -37,7 +37,9 @@ jobs:
         uses: actions/checkout@ec3a7ce113134d7a93b817d10a8272cb61118579
 
       - name: Retrieve existing spel-packages yum repo
-        run: aws s3 sync --no-sign-request --exact-timestamps --endpoint-url ${{ env.REPO_ENDPOINT }} s3://${{ env.REPO_BUCKET }}/${{ env.REPO_PREFIX }} ./${{ env.REPO_PATH }}
+        run: |
+          mkdir -p ./${{ env.REPO_PATH }}
+          aws s3 sync --no-sign-request --exact-timestamps --endpoint-url ${{ env.REPO_ENDPOINT }} s3://${{ env.REPO_BUCKET }}/${{ env.REPO_PREFIX }} ./${{ env.REPO_PATH }}
 
       - name: Get pinned versions
         run: |
@@ -52,6 +54,7 @@ jobs:
         uses: docker/build-push-action@a66e35b9cbcf4ad0ea91ffcaf7bbad63ad9e0229
         with:
           file: Dockerfile.el${{ matrix.el_version }}
+          context: .
           load: true
           tags: ${{ env.DOCKER_NAME }}
           build-args: |

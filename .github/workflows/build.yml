@@ -43,9 +43,9 @@ jobs:
 
       - name: Get pinned versions
         run: |
-          echo "AMAZONLINUX_VERSION=$(make amazonlinux/version)" | tee -a $GITHUB_ENV
-          echo "CENTOS_VERSION=$(make centos${{ matrix.el_version }}/version)" | tee -a $GITHUB_ENV
-          echo "GOMPLATE_VERSION=$(make gomplate/version)" | tee -a $GITHUB_ENV
+          echo "AMAZONLINUX_VERSION=$(make amazonlinux/version)" | tee -a "$GITHUB_ENV"
+          echo "CENTOS_VERSION=$(make centos${{ matrix.el_version }}/version)" | tee -a "$GITHUB_ENV"
+          echo "GOMPLATE_VERSION=$(make gomplate/version)" | tee -a "$GITHUB_ENV"
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@94ab11c41e45d028884a99163086648e898eed25
@@ -85,7 +85,7 @@ jobs:
           rpmsign --addsign \
             --define='%_gpg_name ${{ env.GPG_NAME }}' \
             --define='%_signature gpg' \
-            $(find ./${{ env.REPO_PATH }}/packages -name *.rpm -type f)
+            "$(find ./${{ env.REPO_PATH }}/packages -name '*.rpm' -type f)"
 
       - name: Create yum repo and copy repodata to host
         run: |

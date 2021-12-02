@@ -1,3 +1,11 @@
+# Project settings
+*.rpm
+.repo/
+repodata/
+packages/
+srpms/
+*.gpg.key
+
 # Editor settings
 .vscode/
 
@@ -15,4 +23,7 @@ __pycache__
 .terraform.lock.hcl
 *.log
 yum-chroot.conf
-*.rpm
+
+# tardigrade-ci
+.tardigrade-ci
+tardigrade-ci/

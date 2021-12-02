@@ -18,6 +18,10 @@ on:
 permissions:
   id-token: write
 
+concurrency: 
+  group: ${{ github.head_ref }}
+  cancel-in-progress: true
+
 jobs:
   BuildRepo:
     runs-on: ubuntu-latest

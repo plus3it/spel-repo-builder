@@ -8,7 +8,7 @@ on:
   push:
     branches:
       - main
-    files:
+    paths:
       - Dockerfile.amzn2
 
 jobs:
@@ -25,10 +25,10 @@ jobs:
           echo "::set-output name=condition::${RELEASE}"
           echo "::set-output name=version::$(make release/version)"
       - name: Create release
-        if: ${{ step.release.outputs.condition == "true" }}
+        if: steps.release.outputs.condition == 'true'
         uses: softprops/action-gh-release@1e07f4398721186383de40550babbdf2b84acfc5
         with:
-          name: ${{ step.release.outputs.version }}
-          tag_name:  ${{ step.release.outputs.version }}
+          name: ${{ steps.release.outputs.version }}
+          tag_name:  ${{ steps.release.outputs.version }}
           generate_release_notes: true
           target_commitish: ${{ env.GITHUB_REF }}

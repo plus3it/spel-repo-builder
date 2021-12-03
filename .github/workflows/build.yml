@@ -86,10 +86,11 @@ jobs:
       - name: Sign packages
         if: github.event_name != 'pull_request'
         run: |
+          mapfile -t PACKAGES < <(find ./${{ env.REPO_PATH }}/packages -name '*.rpm' -type f)
           rpmsign --addsign \
             --define='%_gpg_name ${{ env.GPG_NAME }}' \
             --define='%_signature gpg' \
-            "$(find ./${{ env.REPO_PATH }}/packages -name '*.rpm' -type f)"
+            "${PACKAGES[@]}"
 
       - name: Create yum repo and copy repodata to host
         run: |

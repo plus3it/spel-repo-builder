@@ -32,3 +32,4 @@ jobs:
           tag_name:  ${{ steps.release.outputs.version }}
           generate_release_notes: true
           target_commitish: ${{ env.GITHUB_REF }}
+          token: ${{ secrets.GH_RELEASES_TOKEN }}

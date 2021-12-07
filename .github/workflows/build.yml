@@ -43,7 +43,7 @@ jobs:
       - name: Retrieve existing spel-packages yum repo
         run: |
           mkdir -p ./${{ env.REPO_PATH }}
-          aws s3 sync --no-sign-request --exact-timestamps --endpoint-url ${{ env.REPO_ENDPOINT }} s3://${{ env.REPO_BUCKET }}/${{ env.REPO_PREFIX }} ./${{ env.REPO_PATH }}
+          aws s3 sync --no-sign-request --exact-timestamps --endpoint-url ${{ env.REPO_ENDPOINT }} s3://${{ env.REPO_BUCKET }}/${{ env.REPO_PREFIX }}/el${{ matrix.el_version }} ./${{ env.REPO_PATH }}
 
       - name: Get pinned versions
         run: |

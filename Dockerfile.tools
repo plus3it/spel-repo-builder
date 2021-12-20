@@ -4,4 +4,4 @@ FROM centos:8@sha256:a1801b843b1bfaf77c501e7a6d3f709401a1e0c83863037fa3aab063a7f
 
 FROM hairyhenderson/gomplate:v3.10.0
 
-FROM plus3it/tardigrade-ci:0.19.3
+FROM plus3it/tardigrade-ci:0.19.4

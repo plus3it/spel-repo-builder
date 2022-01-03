@@ -29,6 +29,7 @@ jobs:
       matrix:
         el_version: [7, 8]
     env:
+      SPEL_RELEASE_RELEASE: 3
       AWS_DEFAULT_REGION: us-east-1
       REPO_ENDPOINT: https://spel-packages.cloudarmor.io
       REPO_BUCKET: spel-packages
@@ -67,6 +68,7 @@ jobs:
             GOMPLATE_VERSION=${{ env.GOMPLATE_VERSION }}
             EPEL_RELEASE_URL=https://dl.fedoraproject.org/pub/epel/epel-release-latest-${{ matrix.el_version }}.noarch.rpm
             SPEL_RELEASE_BASEURL=${{ env.REPO_ENDPOINT }}/${{ env.REPO_PREFIX }}/el${{ matrix.el_version }}
+            SPEL_RELEASE_RELEASE=${{ env.SPEL_RELEASE_RELEASE }}
 
       - name: Copy built packages to host
         run: |
@@ -139,4 +141,4 @@ jobs:
         if: github.event_name != 'pull_request'
         run: |
           aws s3 sync --delete ./${{ env.REPO_PATH }}/ s3://${{ env.REPO_BUCKET }}/${{ env.REPO_PREFIX }}/el${{ matrix.el_version }}/
-          aws s3 cp ./${{ env.REPO_PATH }}/packages/noarch/spel-release-*.rpm s3://${{ env.REPO_BUCKET }}/${{ env.REPO_PREFIX }}/spel-release-latest-${{ matrix.el_version }}.noarch.rpm
+          aws s3 cp ./${{ env.REPO_PATH }}/packages/noarch/spel-release-${{ matrix.el_version}}-${{ env.SPEL_RELEASE_RELEASE }}.noarch.rpm s3://${{ env.REPO_BUCKET }}/${{ env.REPO_PREFIX }}/spel-release-latest-${{ matrix.el_version }}.noarch.rpm

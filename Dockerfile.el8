@@ -71,8 +71,9 @@ COPY package-templates /root/spel-repo-builder/package-templates
 COPY LICENSE /root/spel-repo-builder/package-templates/spel-release
 
 ARG SPEL_RELEASE_BASEURL
+ARG SPEL_RELEASE_RELEASE
 ENV SPEL_RELEASE_BASEURL ${SPEL_RELEASE_BASEURL}
-ENV SPEL_RELEASE_RELEASE 3
+ENV SPEL_RELEASE_RELEASE ${SPEL_RELEASE_RELEASE}
 ENV SPEL_RELEASE_VERSION 8
 
 RUN gomplate --input-dir /root/spel-repo-builder/package-templates --output-dir /root/spel-packages

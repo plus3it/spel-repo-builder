@@ -55,6 +55,9 @@ rm -rf $RPM_BUILD_ROOT
 /etc/pki/rpm-gpg/*
 
 %changelog
+* Mon Jan 03 2022 Loren Gordon <loren.gordon@plus3it.com>
+- Fix base url to work across multiple platforms
+
 * Tue Nov 02 2021 Loren Gordon <loren.gordon@plus3it.com>
 - Rework packaging and repo automation using docker
 

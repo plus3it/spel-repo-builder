@@ -1,1 +1,1 @@
-spel-release {{.Env.SPEL_RELEASE_VERSION}}
+spel-release {{.Env.SPEL_RELEASE_VERSION}}-{{.Env.SPEL_RELEASE_RELEASE}}

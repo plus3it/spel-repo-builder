@@ -66,7 +66,7 @@ jobs:
             CENTOS_VERSION=${{ env.CENTOS_VERSION }}
             GOMPLATE_VERSION=${{ env.GOMPLATE_VERSION }}
             EPEL_RELEASE_URL=https://dl.fedoraproject.org/pub/epel/epel-release-latest-${{ matrix.el_version }}.noarch.rpm
-            SPEL_RELEASE_BASEURL=${{ env.REPO_ENDPOINT }}/${{ env.REPO_PREFIX }}/el$releasever
+            SPEL_RELEASE_BASEURL=${{ env.REPO_ENDPOINT }}/${{ env.REPO_PREFIX }}/el${{ matrix.el_version }}
 
       - name: Copy built packages to host
         run: |

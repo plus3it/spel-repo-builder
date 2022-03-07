@@ -80,7 +80,7 @@ jobs:
       - name: Import GPG key
         if: github.event_name != 'pull_request'
         id: import_gpg
-        uses: crazy-max/ghaction-import-gpg@cb4264d3319acaa2bea23d51ef67f80b4f775013
+        uses: crazy-max/ghaction-import-gpg@b7c9a01276e14c606a92f6cbeb4dd439bea001b5
         with:
           gpg_private_key: ${{ secrets.GPG_PRIVATE_KEY }}
           passphrase: ${{ secrets.GPG_PASSPHRASE }}

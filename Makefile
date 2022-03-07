@@ -18,7 +18,7 @@ amazonlinux/% release/%: AMAZONLINUX_VERSION ?= $(call match_pattern_in_file,$(D
 amazonlinux/version:
 	@ echo $(AMAZONLINUX_VERSION)
 
-centos8/%: CENTOS8_VERSION ?= $(call match_pattern_in_file,$(DOCKERFILE_TOOLS),'centos:8','8@sha256:.*')
+centos8/%: CENTOS8_VERSION ?= $(call match_pattern_in_file,$(DOCKERFILE_TOOLS),'centos:stream8','stream8@sha256:.*')
 centos8/version:
 	@ echo $(CENTOS8_VERSION)
 

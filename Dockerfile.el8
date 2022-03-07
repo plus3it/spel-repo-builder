@@ -1,5 +1,5 @@
 ARG AMZN_VERSION=2
-ARG CENTOS_VERSION=8
+ARG CENTOS_VERSION=stream8
 ARG GOMPLATE_VERSION=stable
 
 FROM amazonlinux:${AMZN_VERSION} as amznlinux
@@ -19,7 +19,7 @@ RUN yum install -y yum-utils \
 
 FROM hairyhenderson/gomplate:${GOMPLATE_VERSION} as gomplate
 
-FROM centos:${CENTOS_VERSION} as builder
+FROM quay.io/centos/centos:${CENTOS_VERSION} as builder
 
 ARG EPEL_RELEASE_URL=https://dl.fedoraproject.org/pub/epel/epel-release-latest-8.noarch.rpm
 WORKDIR /root
@@ -103,7 +103,7 @@ RUN SPEL_RELEASE_BASEURL=file:///spel-packages/repo/ gomplate --file /root/spel-
     && PACKAGES_BUILT=($(find RPMS/ -name *.rpm -type f -printf "%f ")) \
     && echo "${PACKAGES_BUILT[@]%%.rpm}" > /root/packages-built
 
-FROM centos:${CENTOS_VERSION}
+FROM quay.io/centos/centos:${CENTOS_VERSION}
 
 COPY --from=builder /root/repo /spel-packages/builder/repo
 COPY --from=builder /root/spel.repo /etc/yum.repos.d/

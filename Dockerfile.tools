@@ -4,4 +4,4 @@ FROM quay.io/centos/centos:stream8@sha256:fc45f3e1294861d7851a87be152b1ab2350d75
 
 FROM hairyhenderson/gomplate:v3.10.0
 
-FROM plus3it/tardigrade-ci:0.21.4
+FROM plus3it/tardigrade-ci:0.21.5

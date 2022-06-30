@@ -29,6 +29,7 @@ jobs:
       matrix:
         el_version: [7, 8]
     env:
+      SPEL_DOD_CERTS_RELEASE: 1
       SPEL_RELEASE_RELEASE: 3
       AWS_DEFAULT_REGION: us-east-1
       REPO_ENDPOINT: https://spel-packages.cloudarmor.io
@@ -69,6 +70,7 @@ jobs:
             GOLANG_VERSION=${{ env.GOLANG_VERSION }}
             GOMPLATE_VERSION=${{ env.GOMPLATE_VERSION }}
             EPEL_RELEASE_URL=https://dl.fedoraproject.org/pub/epel/epel-release-latest-${{ matrix.el_version }}.noarch.rpm
+            SPEL_DOD_CERTS_RELEASE=${{ env.SPEL_DOD_CERTS_RELEASE }}
             SPEL_RELEASE_BASEURL=${{ env.REPO_ENDPOINT }}/${{ env.REPO_PREFIX }}/el${{ matrix.el_version }}
             SPEL_RELEASE_RELEASE=${{ env.SPEL_RELEASE_RELEASE }}
 

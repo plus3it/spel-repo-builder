@@ -1,4 +1,4 @@
-name: Spel repo builder
+name: spel repo builder
 on:
   # Run on demand
   workflow_dispatch:
@@ -24,6 +24,7 @@ concurrency:
 
 jobs:
   BuildRepo:
+    name: build-repo-el${{ matrix.el_version }}
     runs-on: ubuntu-latest
     strategy:
       matrix:
@@ -41,6 +42,9 @@ jobs:
     steps:
       - name: Clone this git repository
         uses: actions/checkout@2541b1294d2704b0964813337f33b291d3f8596b
+
+      - name: Install aws-cli
+        uses: unfor19/install-aws-cli-action@35a9630be0168293ad2afccbe06e8e9f47678d2c
 
       - name: Retrieve existing spel-packages yum repo
         run: |
@@ -63,7 +67,7 @@ jobs:
           file: Dockerfile.el${{ matrix.el_version }}
           context: .
           load: true
-          tags: ${{ env.DOCKER_NAME }}
+          tags: spel-packages-el${{ matrix.el_version }}
           build-args: |
             AMZN_VERSION=${{ env.AMAZONLINUX_VERSION }}
             CENTOS_VERSION=${{ env.CENTOS_VERSION }}

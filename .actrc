@@ -2,5 +2,5 @@
 -P ubuntu-22.04=ghcr.io/catthehacker/ubuntu:act-22.04
 -P ubuntu-20.04=ghcr.io/catthehacker/ubuntu:act-20.04
 -P ubuntu-18.04=ghcr.io/catthehacker/ubuntu:act-18.04
---reuse
 --rm
+--artifact-server-path ./.repo

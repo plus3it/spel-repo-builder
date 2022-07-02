@@ -150,3 +150,10 @@ jobs:
         run: |
           aws s3 sync --delete ./${{ env.REPO_PATH }}/ s3://${{ env.REPO_BUCKET }}/${{ env.REPO_PREFIX }}/el${{ matrix.el_version }}/
           aws s3 cp ./${{ env.REPO_PATH }}/packages/noarch/spel-release-${{ matrix.el_version}}-${{ env.SPEL_RELEASE_RELEASE }}.noarch.rpm s3://${{ env.REPO_BUCKET }}/${{ env.REPO_PREFIX }}/spel-release-latest-${{ matrix.el_version }}.noarch.rpm
+
+      - name: Store repo as artifact
+        uses: actions/upload-artifact@3cea5372237819ed00197afe530f5a7ea3e805c8
+        with:
+          name: spel-repo-el${{ matrix.el_version }}
+          path: .repo/el${{ matrix.el_version }}
+          retention-days: 3

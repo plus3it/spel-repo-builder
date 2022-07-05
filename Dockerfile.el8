@@ -82,13 +82,10 @@ COPY Dockerfile.tools /root/spel-repo-builder/
 COPY package-templates /root/spel-repo-builder/package-templates
 COPY LICENSE /root/spel-repo-builder/package-templates/spel-release
 COPY LICENSE /root/spel-repo-builder/package-templates/spel-dod-certs
+COPY LICENSE /root/spel-repo-builder/package-templates/spel-wcf-certs
 
-ARG SPEL_DOD_CERTS_RELEASE
 ARG SPEL_RELEASE_BASEURL
 ARG SPEL_RELEASE_RELEASE
-
-ENV SPEL_DOD_CERTS_RELEASE ${SPEL_DOD_CERTS_RELEASE}
-ENV SPEL_DOD_CERTS_VERSION 8
 
 ENV SPEL_RELEASE_BASEURL ${SPEL_RELEASE_BASEURL}
 ENV SPEL_RELEASE_RELEASE ${SPEL_RELEASE_RELEASE}

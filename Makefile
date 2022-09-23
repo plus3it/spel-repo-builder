@@ -26,6 +26,10 @@ centos7/%: CENTOS7_VERSION ?= $(call match_pattern_in_file,$(DOCKERFILE_TOOLS),'
 centos7/version:
 	@ echo $(CENTOS7_VERSION)
 
+golang/% release/%: GOLANG_VERSION ?= $(call match_pattern_in_file,$(DOCKERFILE_TOOLS),'golang','$(SEMVER_PATTERN)')
+golang/version:
+	@ echo $(GOLANG_VERSION)
+
 release/%: PRIOR_VERSION = $(shell git describe --abbrev=0 --tags 2> /dev/null)
 release/%: RELEASE_VERSION = $(AMAZONLINUX_VERSION)
 

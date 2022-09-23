@@ -1,5 +1,6 @@
 ARG AMZN_VERSION=2
 ARG CENTOS_VERSION=7
+ARG GOLANG_VERSION=latest
 ARG GOMPLATE_VERSION=stable
 
 FROM amazonlinux:${AMZN_VERSION} as amznlinux
@@ -19,6 +20,8 @@ RUN yum install -y yum-utils \
 
 FROM hairyhenderson/gomplate:${GOMPLATE_VERSION} as gomplate
 
+FROM golang:${GOLANG_VERSION} as golang
+
 FROM centos:${CENTOS_VERSION} as builder
 
 ARG EPEL_RELEASE_URL=https://dl.fedoraproject.org/pub/epel/epel-release-latest-7.noarch.rpm
@@ -34,15 +37,23 @@ RUN yum install -y \
         acpid \
         ant \
         dos2unix \
+        git \
         java-1.8.0-openjdk \
         make \
         python2-devel \
         python3 \
-        pytest
+        pytest \
+        selinux-policy-devel
 
 # Install requirements for building amznlinux srpms from epel repos
-RUN yum install -y ${EPEL_RELEASE_URL} \
-    && yum install -y --enablerepo=epel golang
+RUN yum install -y ${EPEL_RELEASE_URL}
+COPY --from=golang /usr/local/go/ /usr/local/go/
+COPY --from=golang /go/ /go/
+
+ENV PATH="/go/bin:/usr/local/go/bin:${PATH}"
+ENV GOPATH=/go
+
+RUN go version
 
 # Setup the rpmbuild tree
 RUN rpmdev-setuptree
@@ -58,6 +69,7 @@ RUN for SRPM in /root/amznsrpms/*.src.rpm ; do \
         && mv *.spec ../SPECS \
         && popd \
         && SPEC=$(find SPECS -name *.spec -type f) \
+        && sed -i "/BuildRequires: golang/d" "$SPEC" \
         && rpmbuild -ba "$SPEC" \
         || exit $? \
         ; rm -rf SPECS/* SOURCES/* BUILD/* ; \

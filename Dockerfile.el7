@@ -67,6 +67,7 @@ RUN for SRPM in /root/amznsrpms/*.src.rpm ; do \
         && mv *.spec ../SPECS \
         && popd \
         && SPEC=$(find SPECS -name *.spec -type f) \
+        && sed -i "/BuildRequires: golang/d" "$SPEC" \
         && rpmbuild -ba "$SPEC" \
         || exit $? \
         ; rm -rf SPECS/* SOURCES/* BUILD/* ; \

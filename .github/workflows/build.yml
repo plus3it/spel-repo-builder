@@ -18,7 +18,7 @@ on:
 permissions:
   id-token: write
 
-concurrency: 
+concurrency:
   group: ${{ github.head_ref || github.ref }}
   cancel-in-progress: true
 
@@ -50,6 +50,7 @@ jobs:
         run: |
           echo "AMAZONLINUX_VERSION=$(make amazonlinux/version)" | tee -a "$GITHUB_ENV"
           echo "CENTOS_VERSION=$(make centos${{ matrix.el_version }}/version)" | tee -a "$GITHUB_ENV"
+          echo "GOLANG_VERSION=$(make golang/version)" | tee -a "$GITHUB_ENV"
           echo "GOMPLATE_VERSION=$(make gomplate/version)" | tee -a "$GITHUB_ENV"
 
       - name: Set up Docker Buildx
@@ -65,6 +66,7 @@ jobs:
           build-args: |
             AMZN_VERSION=${{ env.AMAZONLINUX_VERSION }}
             CENTOS_VERSION=${{ env.CENTOS_VERSION }}
+            GOLANG_VERSION=${{ env.GOLANG_VERSION }}
             GOMPLATE_VERSION=${{ env.GOMPLATE_VERSION }}
             EPEL_RELEASE_URL=https://dl.fedoraproject.org/pub/epel/epel-release-latest-${{ matrix.el_version }}.noarch.rpm
             SPEL_RELEASE_BASEURL=${{ env.REPO_ENDPOINT }}/${{ env.REPO_PREFIX }}/el${{ matrix.el_version }}

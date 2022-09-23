@@ -1,5 +1,6 @@
 ARG AMZN_VERSION=2
 ARG CENTOS_VERSION=stream8
+ARG GOLANG_VERSION=latest
 ARG GOMPLATE_VERSION=stable
 
 FROM amazonlinux:${AMZN_VERSION} as amznlinux
@@ -18,6 +19,8 @@ RUN yum install -y yum-utils \
         amazon\* aws\* ec2\*
 
 FROM hairyhenderson/gomplate:${GOMPLATE_VERSION} as gomplate
+
+FROM golang:${GOLANG_VERSION} as golang
 
 FROM quay.io/centos/centos:${CENTOS_VERSION} as builder
 
@@ -41,8 +44,14 @@ RUN yum install -y \
         python3-pytest
 
 # Install requirements for building amznlinux srpms from epel repos
-RUN yum install -y ${EPEL_RELEASE_URL} \
-    && yum install -y --enablerepo=epel golang
+RUN yum install -y ${EPEL_RELEASE_URL}
+COPY --from=golang /usr/local/go/ /usr/local/go/
+COPY --from=golang /go/ /go/
+
+ENV PATH="/go/bin:/usr/local/go/bin:${PATH}"
+ENV GOPATH=/go
+
+RUN go version
 
 # Setup the rpmbuild tree
 RUN rpmdev-setuptree

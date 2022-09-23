@@ -37,11 +37,13 @@ RUN yum install -y \
         acpid \
         ant \
         dos2unix \
+        git \
         java-1.8.0-openjdk \
         make \
         python2-devel \
         python3 \
-        python3-pytest
+        python3-pytest \
+        selinux-policy-devel
 
 # Install requirements for building amznlinux srpms from epel repos
 RUN yum install -y ${EPEL_RELEASE_URL}

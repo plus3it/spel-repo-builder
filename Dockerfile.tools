@@ -2,7 +2,7 @@ FROM centos:7@sha256:dead07b4d8ed7e29e98de0f4504d87e8880d4347859d839686a31da35a3
 
 FROM quay.io/centos/centos:stream8@sha256:c9acf46f90fcb637eff59e269fbbebf5ec9e6b6215a07fbe2bbad7429aad6e7e
 
-FROM hairyhenderson/gomplate:v3.11.1
+FROM hairyhenderson/gomplate:v3.11.3
 
 FROM golang:1.19.1
 

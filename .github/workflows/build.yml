@@ -1,4 +1,4 @@
-name: Spel repo builder
+name: spel repo builder
 on:
   # Run on demand
   workflow_dispatch:
@@ -24,6 +24,7 @@ concurrency:
 
 jobs:
   BuildRepo:
+    name: build-repo-el${{ matrix.el_version }}
     runs-on: ubuntu-latest
     strategy:
       matrix:
@@ -40,6 +41,9 @@ jobs:
     steps:
       - name: Clone this git repository
         uses: actions/checkout@2541b1294d2704b0964813337f33b291d3f8596b
+
+      - name: Install aws-cli
+        uses: unfor19/install-aws-cli-action@35a9630be0168293ad2afccbe06e8e9f47678d2c
 
       - name: Retrieve existing spel-packages yum repo
         run: |
@@ -62,7 +66,7 @@ jobs:
           file: Dockerfile.el${{ matrix.el_version }}
           context: .
           load: true
-          tags: ${{ env.DOCKER_NAME }}
+          tags: spel-packages-el${{ matrix.el_version }}
           build-args: |
             AMZN_VERSION=${{ env.AMAZONLINUX_VERSION }}
             CENTOS_VERSION=${{ env.CENTOS_VERSION }}
@@ -144,3 +148,10 @@ jobs:
         run: |
           aws s3 sync --delete ./${{ env.REPO_PATH }}/ s3://${{ env.REPO_BUCKET }}/${{ env.REPO_PREFIX }}/el${{ matrix.el_version }}/
           aws s3 cp ./${{ env.REPO_PATH }}/packages/noarch/spel-release-${{ matrix.el_version}}-${{ env.SPEL_RELEASE_RELEASE }}.noarch.rpm s3://${{ env.REPO_BUCKET }}/${{ env.REPO_PREFIX }}/spel-release-latest-${{ matrix.el_version }}.noarch.rpm
+
+      - name: Store repo as artifact
+        uses: actions/upload-artifact@3cea5372237819ed00197afe530f5a7ea3e805c8
+        with:
+          name: spel-repo-el${{ matrix.el_version }}
+          path: .repo/el${{ matrix.el_version }}
+          retention-days: 3

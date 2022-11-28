@@ -25,7 +25,7 @@ jobs:
         run: |
           RELEASE=false
           if make release/test 2> /dev/null; then RELEASE=true; fi
-          echo "conditon=${RELEASE}" >> "$GITHUB_OUTPUT"
+          echo "condition=${RELEASE}" >> "$GITHUB_OUTPUT"
           echo "version=$(make release/version)" >> "$GITHUB_OUTPUT"
       - name: Create release
         if: steps.release.outputs.condition == 'true'

@@ -1,5 +1,5 @@
 Name:           spel-wcf-certs
-Version:        5.13
+Version:        5.14
 Release:        1%{?dist}
 Summary:        Installs and updates DISA WCF CA Certificates
 
@@ -45,5 +45,7 @@ update-ca-trust force-enable
 update-ca-trust extract
 
 %changelog
+* Fri Mar 31 2023 John Ricords <John.Ricords@plus3it.com>
+- Update of packaging of spel-wcf-certs to v5.14
 * Thu Jun 30 2022 Loren Gordon <loren.gordon@plus3it.com>
 - Initial packaging of spel-wcf-certs, v5.13

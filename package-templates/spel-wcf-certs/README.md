@@ -15,7 +15,7 @@ Notifications of updates to the bundle go out via the "Tools" RSS feed:
 When a new bundle is published, follow these instructions to update `spel-wcf-certs`:
 
 1. Download the new bundle and extract it
-2. Identify the `*.pem.p7b` file in the bundle
+2. Identify the `*pem.p7b` file in the bundle
 3. Run this command to export the CA certificates to a concatenated PEM file:
     ```
     openssl pkcs7 -in *.pem.p7b -print_certs -out WCF_CAs.pem

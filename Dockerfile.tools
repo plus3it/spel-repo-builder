@@ -6,4 +6,4 @@ FROM hairyhenderson/gomplate:v3.11.5
 
 FROM golang:1.20.5
 
-FROM plus3it/tardigrade-ci:0.24.6
+FROM plus3it/tardigrade-ci:0.24.7

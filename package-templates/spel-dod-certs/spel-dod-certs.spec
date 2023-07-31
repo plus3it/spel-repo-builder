@@ -1,5 +1,5 @@
 Name:           spel-dod-certs
-Version:        5.11
+Version:        5.12
 Release:        1%{?dist}
 Summary:        Installs and updates DoD CA Certificates
 
@@ -45,6 +45,8 @@ update-ca-trust force-enable
 update-ca-trust extract
 
 %changelog
+* Wed Jul 26 2023 Loren Gordon <loren.gordon@plus3it.com>
+- Update of packaging of spel-dod-certs to v5.12
 * Fri Mar 31 2023 John Ricords <John.Ricords@plus3it.com>
 - Update of packaging of spel-dod-certs to v5.11
 * Thu Jun 30 2022 Loren Gordon <loren.gordon@plus3it.com>

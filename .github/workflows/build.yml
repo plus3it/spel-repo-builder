@@ -40,7 +40,7 @@ jobs:
       REPO_PATH: .repo/el${{ matrix.el_version }}
     steps:
       - name: Clone this git repository
-        uses: actions/checkout@c85c95e3d7251135ab7dc9ce3241c5835cc595a9
+        uses: actions/checkout@f43a0e5ff2bd294095638e18286ca9a3d1956744
 
       - name: Install aws-cli
         uses: unfor19/install-aws-cli-action@3c53dab4dd62b5d9d647f0ce9519285250a3c767

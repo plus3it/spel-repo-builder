@@ -19,4 +19,8 @@ updates:
         patterns:
           - "*"
         exclude-patterns:
-          - "centos:7*"
+          - "centos"
+
+ignore:
+  - dependency-name: "centos"
+    update-types: ["version-update:semver-major"]

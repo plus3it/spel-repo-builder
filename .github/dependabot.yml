@@ -20,7 +20,6 @@ updates:
           - "*"
         exclude-patterns:
           - "centos"
-
-ignore:
-  - dependency-name: "centos"
-    update-types: ["version-update:semver-major"]
+    ignore:
+      - dependency-name: "centos"
+        update-types: ["version-update:semver-major"]

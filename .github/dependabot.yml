@@ -7,8 +7,9 @@ updates:
       interval: weekly
     groups:
       github-actions:
-        patterns:
-          - "*"
+        update-types:
+          - patch
+          - minor
   # Maintain dependencies for dockerfiles
   - package-ecosystem: docker
     directory: /
@@ -16,5 +17,6 @@ updates:
       interval: weekly
     groups:
       docker:
-        patterns:
-          - "*"
+        update-types:
+          - patch
+          - minor

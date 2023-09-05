@@ -1,4 +1,4 @@
-FROM centos:8@sha256:a27fd8080b517143cbbbab9dfb7c8571c40d67d534bbdee55bd6c473f432b177
+FROM centos:7@sha256:dead07b4d8ed7e29e98de0f4504d87e8880d4347859d839686a31da35a3b532f
 
 FROM quay.io/centos/centos:stream8@sha256:7b6efe39fa1307fb7590ba8496876fadcbba04f11fddc0d29bdbffb89b50f538
 

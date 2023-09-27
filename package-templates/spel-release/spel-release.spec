@@ -16,7 +16,7 @@ Source3:        spel-release
 
 BuildArch:      noarch
 BuildRequires:  rpm
-Requires:       redhat-release >=  %{version}
+Requires:       redhat-release >=  {{.Env.SPEL_RELEASE_VERSION}}, redhat-release < {{ math.Add .Env.SPEL_RELEASE_VERSION 1 }}
 Conflicts:      fedora-release
 
 %description
@@ -55,6 +55,9 @@ rm -rf $RPM_BUILD_ROOT
 /etc/pki/rpm-gpg/*
 
 %changelog
+* Wed Sep 27 2023 Loren Gordon <loren.gordon@plus3it.com>
+- Fix "Requires" to restrict major version correctly
+
 * Mon Jan 03 2022 Loren Gordon <loren.gordon@plus3it.com>
 - Fix base url to work across multiple platforms
 

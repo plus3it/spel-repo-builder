@@ -30,7 +30,7 @@ jobs:
       matrix:
         el_version: [7, 8]
     env:
-      SPEL_RELEASE_RELEASE: 3
+      SPEL_RELEASE_RELEASE: 4
       AWS_DEFAULT_REGION: us-east-1
       REPO_ENDPOINT: https://spel-packages.cloudarmor.io
       REPO_BUCKET: spel-packages

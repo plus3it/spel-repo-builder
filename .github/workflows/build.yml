@@ -146,8 +146,12 @@ jobs:
       - name: Push repo to s3 bucket
         if: github.event_name != 'pull_request'
         run: |
+          SPEL_DOD_CERTS="$(find ./${{ env.REPO_PATH }}/packages/noarch/ --name 'spel-dod-certs-*' | sort --field-separator=- --key=4.1Vr,4 --key=5Vr | head -1)"
+          SPEL_WCF_CERTS="$(find ./${{ env.REPO_PATH }}/packages/noarch/ --name 'spel-wcf-certs-*' | sort --field-separator=- --key=4.1Vr,4 --key=5Vr | head -1)"
           aws s3 sync --delete ./${{ env.REPO_PATH }}/ s3://${{ env.REPO_BUCKET }}/${{ env.REPO_PREFIX }}/el${{ matrix.el_version }}/
           aws s3 cp ./${{ env.REPO_PATH }}/packages/noarch/spel-release-${{ matrix.el_version}}-${{ env.SPEL_RELEASE_RELEASE }}.noarch.rpm s3://${{ env.REPO_BUCKET }}/${{ env.REPO_PREFIX }}/spel-release-latest-${{ matrix.el_version }}.noarch.rpm
+          aws s3 cp "$SPEL_DOD_CERTS" s3://${{ env.REPO_BUCKET }}/${{ env.REPO_PREFIX }}/spel-dod-certs-latest-${{ matrix.el_version }}.noarch.rpm
+          aws s3 cp "$SPEL_WCF_CERTS" s3://${{ env.REPO_BUCKET }}/${{ env.REPO_PREFIX }}/spel-wcf-certs-latest-${{ matrix.el_version }}.noarch.rpm
 
       - name: Store repo as artifact
         uses: actions/upload-artifact@a8a3f3ad30e3422c9c7b888a15615d19a852ae32

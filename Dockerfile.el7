@@ -40,8 +40,8 @@ RUN yum install -y \
         git \
         java-1.8.0-openjdk \
         make \
-        python2-devel \
         python3 \
+        python3-devel \
         pytest \
         selinux-policy-devel
 
@@ -70,7 +70,7 @@ RUN for SRPM in /root/amznsrpms/*.src.rpm ; do \
         && popd \
         && SPEC=$(find SPECS -name *.spec -type f) \
         && sed -i "/BuildRequires: golang/d" "$SPEC" \
-        && rpmbuild -ba "$SPEC" \
+        && rpmbuild -ba --define "__python python3" "$SPEC" \
         || exit $? \
         ; rm -rf SPECS/* SOURCES/* BUILD/* ; \
     done

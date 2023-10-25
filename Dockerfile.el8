@@ -70,6 +70,8 @@ RUN for SRPM in /root/amznsrpms/*.src.rpm ; do \
         && popd \
         && SPEC=$(find SPECS -name *.spec -type f) \
         && sed -i "/BuildRequires: golang/d" "$SPEC" \
+        && echo "Building $SRPM" \
+        && echo "SPEC file is $SPEC" \
         && rpmbuild -ba "$SPEC" \
         # || exit $? \  # el8 cannot yet build all srpms, just let them fail for now
         ; rm -rf SPECS/* SOURCES/* BUILD/* ; \

@@ -70,6 +70,8 @@ RUN for SRPM in /root/amznsrpms/*.src.rpm ; do \
         && popd \
         && SPEC=$(find SPECS -name *.spec -type f) \
         && sed -i "/BuildRequires: golang/d" "$SPEC" \
+        && echo "Building $SRPM" \
+        && echo "SPEC file is $SPEC" \
         && rpmbuild -ba --define "__python python3" "$SPEC" \
         || exit $? \
         ; rm -rf SPECS/* SOURCES/* BUILD/* ; \

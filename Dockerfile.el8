@@ -24,6 +24,8 @@ FROM golang:${GOLANG_VERSION} as golang
 
 FROM quay.io/centos/centos:${CENTOS_VERSION} as builder
 
+SHELL ["/bin/bash", "-c"]
+
 ARG EPEL_RELEASE_URL=https://dl.fedoraproject.org/pub/epel/epel-release-latest-8.noarch.rpm
 WORKDIR /root
 
@@ -42,6 +44,7 @@ RUN yum install -y \
         make \
         python2-devel \
         python3 \
+        python3-devel \
         python3-pytest \
         selinux-policy-devel
 
@@ -72,7 +75,10 @@ RUN for SRPM in /root/amznsrpms/*.src.rpm ; do \
         && sed -i "/BuildRequires: golang/d" "$SPEC" \
         && echo "Building $SRPM" \
         && echo "SPEC file is $SPEC" \
-        && rpmbuild -ba "$SPEC" \
+        && PYTHON=python3 \
+        && if [[ "$SRPM" =~ "ec2-hibinit-agent" ]] ; then PYTHON=python ; fi \
+        && echo "Using $PYTHON" \
+        && rpmbuild -ba --define "__python $PYTHON" "$SPEC" \
         # || exit $? \  # el8 cannot yet build all srpms, just let them fail for now
         ; rm -rf SPECS/* SOURCES/* BUILD/* ; \
     done

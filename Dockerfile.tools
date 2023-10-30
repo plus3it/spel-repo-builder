@@ -1,6 +1,6 @@
 FROM centos:7@sha256:be65f488b7764ad3638f236b7b515b3678369a5124c47b8d32916d6487418ea4
 
-FROM quay.io/centos/centos:stream8@sha256:969d0dba373dc01be38904cec8bd327d97286f9995a6b191f1608a3c9dbb15c6
+FROM quay.io/centos/centos:stream8@sha256:b1f6889548eda34b2ddc8c2f50a49bf9924164814308e41e90a07e3b30e0db7f
 
 FROM hairyhenderson/gomplate:v3.11.5
 

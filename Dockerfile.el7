@@ -15,7 +15,7 @@ RUN yum install -y yum-utils \
     && yumdownloader \
         --destdir . \
         --source \
-        --exclude amazon-linux-extras,amazon-linux-extras-yum-plugin,amazon-linux-onprem,amazon-ssm-agent,amazonlinux-indexhtml,aws-cfn-bootstrap,aws-cli-plugin-cloudwatch-logs,awscli,awslogs,ec2sys-autotune \
+        --exclude amazon-linux-extras,amazon-linux-extras-yum-plugin,amazon-linux-onprem,amazon-ssm-agent,amazonlinux-indexhtml,aws-cli-plugin-cloudwatch-logs,awscli,awslogs,ec2sys-autotune \
         amazon\* aws\* ec2\*
 
 FROM hairyhenderson/gomplate:${GOMPLATE_VERSION} as gomplate

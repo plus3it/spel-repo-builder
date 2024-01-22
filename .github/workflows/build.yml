@@ -154,7 +154,7 @@ jobs:
           aws s3 cp "$SPEL_WCF_CERTS" s3://${{ env.REPO_BUCKET }}/${{ env.REPO_PREFIX }}/spel-wcf-certs-latest-${{ matrix.el_version }}.noarch.rpm
 
       - name: Store repo as artifact
-        uses: actions/upload-artifact@1eb3cb2b3e0f29609092a73eb033bb759a334595
+        uses: actions/upload-artifact@694cdabd8bdb0f10b2cea11669e1bf5453eed0a6
         with:
           name: spel-repo-el${{ matrix.el_version }}
           path: .repo/el${{ matrix.el_version }}

@@ -5,6 +5,7 @@ pull_request_rules:
       - files~=^(Dockerfile.*|\.github/workflows/build\.yml|package-templates/)
       - check-success=build-repo-el7
       - check-success=build-repo-el8
+      - check-success=build-repo-el9
     actions:
       review:
         type: APPROVE

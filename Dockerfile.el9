@@ -1,5 +1,5 @@
 ARG AMZN_VERSION=2
-ARG CENTOS_VERSION=stream8
+ARG CENTOS_VERSION=stream9
 ARG GOLANG_VERSION=latest
 ARG GOMPLATE_VERSION=stable
 
@@ -26,7 +26,7 @@ FROM quay.io/centos/centos:${CENTOS_VERSION} as builder
 
 SHELL ["/bin/bash", "-c"]
 
-ARG EPEL_RELEASE_URL=https://dl.fedoraproject.org/pub/epel/epel-release-latest-8.noarch.rpm
+ARG EPEL_RELEASE_URL=https://dl.fedoraproject.org/pub/epel/epel-release-latest-9.noarch.rpm
 WORKDIR /root
 
 # Install basic packaging tools
@@ -77,7 +77,7 @@ RUN for SRPM in /root/amznsrpms/*.src.rpm ; do \
         && PYTHON=python3 \
         && echo "Using $PYTHON" \
         && rpmbuild -ba --define "__python $PYTHON" "$SPEC" \
-        # || exit $? \  # el8 cannot yet build all srpms, just let them fail for now
+        # || exit $? \  # el9 cannot yet build all srpms, just let them fail for now
         ; rm -rf SPECS/* SOURCES/* BUILD/* ; \
     done
 
@@ -95,7 +95,7 @@ ARG SPEL_RELEASE_RELEASE
 
 ENV SPEL_RELEASE_BASEURL ${SPEL_RELEASE_BASEURL}
 ENV SPEL_RELEASE_RELEASE ${SPEL_RELEASE_RELEASE}
-ENV SPEL_RELEASE_VERSION 8
+ENV SPEL_RELEASE_VERSION 9
 
 RUN gomplate --input-dir /root/spel-repo-builder/package-templates --output-dir /root/spel-packages
 
@@ -110,7 +110,7 @@ RUN for PKG in $(find /root/spel-packages/* -type d) ; do \
     done
 
 # Get existing repo from build host
-COPY .repo/el8 /root/repo
+COPY .repo/el9 /root/repo
 
 # Create the yum repo
 RUN install -Ddm 000755 /root/repo/packages/ \

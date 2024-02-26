@@ -42,7 +42,6 @@ RUN yum install -y \
         git \
         java-1.8.0-openjdk \
         make \
-        python2-devel \
         python3 \
         python3-devel \
         python3-pytest \
@@ -76,7 +75,6 @@ RUN for SRPM in /root/amznsrpms/*.src.rpm ; do \
         && echo "Building $SRPM" \
         && echo "SPEC file is $SPEC" \
         && PYTHON=python3 \
-        && if [[ "$SRPM" =~ "ec2-hibinit-agent" ]] ; then PYTHON=python ; fi \
         && echo "Using $PYTHON" \
         && rpmbuild -ba --define "__python $PYTHON" "$SPEC" \
         # || exit $? \  # el8 cannot yet build all srpms, just let them fail for now

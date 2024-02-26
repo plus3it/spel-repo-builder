@@ -75,7 +75,6 @@ RUN for SRPM in /root/amznsrpms/*.src.rpm ; do \
         && echo "Building $SRPM" \
         && echo "SPEC file is $SPEC" \
         && PYTHON=python3 \
-        && if [[ "$SRPM" =~ "ec2-hibinit-agent" ]] ; then PYTHON=python ; fi \
         && echo "Using $PYTHON" \
         && rpmbuild -ba --define "__python $PYTHON" "$SPEC" \
         # || exit $? \  # el9 cannot yet build all srpms, just let them fail for now

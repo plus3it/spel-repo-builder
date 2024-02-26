@@ -1,0 +1,138 @@
+ARG AMZN_VERSION=2
+ARG CENTOS_VERSION=stream9
+ARG GOLANG_VERSION=latest
+ARG GOMPLATE_VERSION=stable
+
+FROM amazonlinux:${AMZN_VERSION} as amznlinux
+
+WORKDIR /amznsrpms
+
+# Enable docker repo because it is enabled by default in amazonlinux2
+RUN amazon-linux-extras enable docker
+
+# Download amznlinux srpms
+RUN yum install -y yum-utils \
+  && yumdownloader \
+  --destdir . \
+  --source \
+  --exclude amazon-linux-extras,amazon-linux-extras-yum-plugin,amazon-linux-onprem,amazonlinux-indexhtml,aws-cfn-bootstrap,aws-cli-plugin-cloudwatch-logs,awscli,awslogs,ec2sys-autotune,ec2-hibinit-agent \
+  amazon\* aws\* ec2\*
+
+FROM hairyhenderson/gomplate:${GOMPLATE_VERSION} as gomplate
+
+FROM golang:${GOLANG_VERSION} as golang
+
+FROM quay.io/centos/centos:${CENTOS_VERSION} as builder
+
+SHELL ["/bin/bash", "-c"]
+
+ARG EPEL_RELEASE_URL=https://dl.fedoraproject.org/pub/epel/epel-release-latest-9.noarch.rpm
+WORKDIR /root
+
+# Install basic packaging tools
+RUN yum install -y \
+        rpmdevtools \
+        rpmlint
+
+# Install requirements for building amznlinux srpms from base repos
+RUN yum install -y \
+        acpid \
+        ant \
+        dos2unix \
+        git \
+        java-1.8.0-openjdk \
+        make \
+        python3 \
+        python3-devel \
+        python3-pytest \
+        selinux-policy-devel
+
+# Install requirements for building amznlinux srpms from epel repos
+RUN yum install -y ${EPEL_RELEASE_URL}
+COPY --from=golang /usr/local/go/ /usr/local/go/
+COPY --from=golang /go/ /go/
+
+ENV PATH="/go/bin:/usr/local/go/bin:${PATH}"
+ENV GOPATH=/go
+
+RUN go version
+
+# Setup the rpmbuild tree
+RUN rpmdev-setuptree
+WORKDIR /root/rpmbuild
+
+# Get amznlinux srpms into this stage
+COPY --from=amznlinux /amznsrpms /root/amznsrpms
+
+# Build all srpms
+RUN for SRPM in /root/amznsrpms/*.src.rpm ; do \
+        pushd SOURCES \
+        && rpm2cpio "$SRPM" | cpio -idv \
+        && mv *.spec ../SPECS \
+        && popd \
+        && SPEC=$(find SPECS -name *.spec -type f) \
+        && sed -i "/BuildRequires: golang/d" "$SPEC" \
+        && echo "Building $SRPM" \
+        && echo "SPEC file is $SPEC" \
+        && PYTHON=python3 \
+        && if [[ "$SRPM" =~ "ec2-hibinit-agent" ]] ; then PYTHON=python ; fi \
+        && echo "Using $PYTHON" \
+        && rpmbuild -ba --define "__python $PYTHON" "$SPEC" \
+        # || exit $? \  # el9 cannot yet build all srpms, just let them fail for now
+        ; rm -rf SPECS/* SOURCES/* BUILD/* ; \
+    done
+
+# Template spel-repo packages using gomplate
+COPY --from=gomplate /gomplate /bin/gomplate
+
+COPY Dockerfile.tools /root/spel-repo-builder/
+COPY package-templates /root/spel-repo-builder/package-templates
+COPY LICENSE /root/spel-repo-builder/package-templates/spel-release
+COPY LICENSE /root/spel-repo-builder/package-templates/spel-dod-certs
+COPY LICENSE /root/spel-repo-builder/package-templates/spel-wcf-certs
+
+ARG SPEL_RELEASE_BASEURL
+ARG SPEL_RELEASE_RELEASE
+
+ENV SPEL_RELEASE_BASEURL ${SPEL_RELEASE_BASEURL}
+ENV SPEL_RELEASE_RELEASE ${SPEL_RELEASE_RELEASE}
+ENV SPEL_RELEASE_VERSION 9
+
+RUN gomplate --input-dir /root/spel-repo-builder/package-templates --output-dir /root/spel-packages
+
+# Build all spel-repo packages
+RUN for PKG in $(find /root/spel-packages/* -type d) ; do \
+        cp $PKG/*.spec SPECS \
+        && cp $PKG/* SOURCES \
+        && SPEC=$(find SPECS -name *.spec -type f) \
+        && rpmbuild -ba "$SPEC" \
+        || exit $? \
+        ; rm -rf SPECS/* SOURCES/* BUILD/* ; \
+    done
+
+# Get existing repo from build host
+COPY .repo/el9 /root/repo
+
+# Create the yum repo
+RUN install -Ddm 000755 /root/repo/packages/ \
+    && install -Ddm 000755 /root/repo/srpms/ \
+    && cp -rlnv RPMS/* /root/repo/packages \
+    && cp -rlnv SRPMS/* /root/repo/srpms \
+    && rm -rf /root/repo/repodata
+
+# Template the spel-repo for local testing
+RUN SPEL_RELEASE_BASEURL=file:///spel-packages/repo/ gomplate --file /root/spel-repo-builder/package-templates/spel-release/spel.repo --out /root/spel.repo \
+    && PACKAGES_BUILT=($(find RPMS/ -name *.rpm -type f -printf "%f ")) \
+    && echo "${PACKAGES_BUILT[@]%%.rpm}" > /root/packages-built
+
+FROM quay.io/centos/centos:${CENTOS_VERSION}
+
+COPY --from=builder /root/repo /spel-packages/builder/repo
+COPY --from=builder /root/spel.repo /etc/yum.repos.d/
+COPY --from=builder /root/packages-built /spel-packages/
+COPY package-templates/spel-release/RPM-GPG-KEY-SPEL /etc/pki/rpm-gpg/
+WORKDIR /spel-packages
+
+RUN yum install -y \
+        createrepo \
+    && yum clean all

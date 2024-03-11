@@ -1,11 +1,11 @@
 FROM centos:7@sha256:be65f488b7764ad3638f236b7b515b3678369a5124c47b8d32916d6487418ea4
 
-FROM quay.io/centos/centos:stream8@sha256:1338a5c9e232a419978dbb2f6f42a71553e0ed53f3332b618f89a19143070d86
+FROM quay.io/centos/centos:stream8@sha256:35fbcb91cfbaa45eea2497abacbaf67d7df35efa8ff5ccef36e077cf5ac970f7
 
-FROM quay.io/centos/centos:stream9@sha256:3b68f482785306a9aa02726ed7f256cea6bd681162ca5996090e2f797fceaabb
+FROM quay.io/centos/centos:stream9@sha256:e3a6cc7964a40a8c959f5edf4094e934a1491990c79cc34b0472f8deb4091a28
 
 FROM hairyhenderson/gomplate:v3.11.7
 
-FROM golang:1.22.0
+FROM golang:1.22.1
 
 FROM plus3it/tardigrade-ci:0.24.15

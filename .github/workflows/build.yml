@@ -116,6 +116,14 @@ jobs:
             ./${{ env.REPO_PATH }}/repodata/repomd.xml
           docker cp ./${{ env.REPO_PATH }}/repodata/repomd.xml.asc ${{ env.DOCKER_NAME }}:/spel-packages/repo/repodata
 
+      # upload repo artifact before testing them to troubleshoot failures
+      - name: Store repo as artifact
+        uses: actions/upload-artifact@5d5d22a31266ced268874388b861e4b58bb5c2f3
+        with:
+          name: spel-repo-el${{ matrix.el_version }}
+          path: .repo/el${{ matrix.el_version }}
+          retention-days: 3
+
       - name: Test signed packages and yum repo
         if: github.event_name != 'pull_request'
         run: |
@@ -152,10 +160,3 @@ jobs:
           aws s3 cp ./${{ env.REPO_PATH }}/packages/noarch/spel-release-${{ matrix.el_version}}-${{ env.SPEL_RELEASE_RELEASE }}.noarch.rpm s3://${{ env.REPO_BUCKET }}/${{ env.REPO_PREFIX }}/spel-release-latest-${{ matrix.el_version }}.noarch.rpm
           aws s3 cp "$SPEL_DOD_CERTS" s3://${{ env.REPO_BUCKET }}/${{ env.REPO_PREFIX }}/spel-dod-certs-latest-${{ matrix.el_version }}.noarch.rpm
           aws s3 cp "$SPEL_WCF_CERTS" s3://${{ env.REPO_BUCKET }}/${{ env.REPO_PREFIX }}/spel-wcf-certs-latest-${{ matrix.el_version }}.noarch.rpm
-
-      - name: Store repo as artifact
-        uses: actions/upload-artifact@5d5d22a31266ced268874388b861e4b58bb5c2f3
-        with:
-          name: spel-repo-el${{ matrix.el_version }}
-          path: .repo/el${{ matrix.el_version }}
-          retention-days: 3

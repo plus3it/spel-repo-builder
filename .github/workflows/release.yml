@@ -9,7 +9,7 @@ on:
     branches:
       - main
     paths:
-      - Dockerfile.amzn2
+      - Dockerfile.amzn2023
 
 jobs:
   release:

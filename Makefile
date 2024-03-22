@@ -2,7 +2,7 @@ export TARDIGRADE_CI_DOCKERFILE ?= Dockerfile.tools
 
 include $(shell test -f .tardigrade-ci || curl -sSL -o .tardigrade-ci "https://raw.githubusercontent.com/plus3it/tardigrade-ci/master/bootstrap/Makefile.bootstrap"; echo .tardigrade-ci)
 
-DOCKERFILE_AMZN2 := Dockerfile.amzn2
+DOCKERFILE_AMZN2023 := Dockerfile.amzn2023
 DOCKERFILE_TOOLS := Dockerfile.tools
 
 ## Install gomplate
@@ -14,7 +14,7 @@ gomplate/install: | $(BIN_DIR)
 gomplate/version:
 	@ echo $(GOMPLATE_VERSION_PIN)
 
-amazonlinux/% release/%: AMAZONLINUX_VERSION ?= $(call match_pattern_in_file,$(DOCKERFILE_AMZN2),'amazonlinux','2\..*')
+amazonlinux/% release/%: AMAZONLINUX_VERSION ?= $(call match_pattern_in_file,$(DOCKERFILE_AMZN2023),'amazonlinux','2023\..*')
 amazonlinux/version:
 	@ echo $(AMAZONLINUX_VERSION)
 

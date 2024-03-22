@@ -1,4 +1,4 @@
-ARG AMZN_VERSION=2
+ARG AMZN_VERSION=2023
 ARG CENTOS_VERSION=7
 ARG GOLANG_VERSION=latest
 ARG GOMPLATE_VERSION=stable
@@ -7,16 +7,31 @@ FROM amazonlinux:${AMZN_VERSION} as amznlinux
 
 WORKDIR /amznsrpms
 
-# Enable docker repo because it is enabled by default in amazonlinux2
-RUN amazon-linux-extras enable docker
-
 # Download amznlinux srpms
 RUN yum install -y yum-utils \
     && yumdownloader \
         --destdir . \
         --source \
-        --exclude amazon-linux-extras,amazon-linux-extras-yum-plugin,amazon-linux-onprem,amazon-ssm-agent,amazonlinux-indexhtml,aws-cfn-bootstrap,aws-cli-plugin-cloudwatch-logs,awscli,awslogs,ec2sys-autotune \
         amazon\* aws\* ec2\*
+
+# Delete source rpms we cannot or do not want to build
+### NOTES:
+### - aws-cfn-bootstrap requires python-chevron and python3-daemon, which are not available for el7
+### - aws-nitro-enclaves-acm requires rust/cargo, which is not available for el7
+### - aws-nitro-enclaves-cli requires rust/cargo, which is not available for el7
+### - awscli requires python3-toml, which is not available for el7
+RUN rm -f \
+  amazon-linux-onprem-* \
+  amazon-linux-repo-cdn-* \
+  amazon-linux-repo-s3-* \
+  amazon-linux-sb-keys-* \
+  amazon-rpm-config-* \
+  aws-cfn-bootstrap-* \
+  aws-nitro-enclaves-acm-* \
+  aws-nitro-enclaves-cli-* \
+  awscli-* \
+  chrony-* \
+  system-release-*
 
 FROM hairyhenderson/gomplate:${GOMPLATE_VERSION} as gomplate
 
@@ -34,6 +49,9 @@ RUN yum install -y \
         rpmdevtools \
         rpmlint
 
+# Install requirements for building amznlinux srpms from epel repos
+RUN yum install -y ${EPEL_RELEASE_URL}
+
 # Install requirements for building amznlinux srpms from base repos
 RUN yum install -y \
         acpid \
@@ -41,15 +59,15 @@ RUN yum install -y \
         dos2unix \
         git \
         java-1.8.0-openjdk \
+        java-1.8.0-openjdk-devel \
         make \
         python2-devel \
         python3 \
         python3-devel \
         pytest \
-        selinux-policy-devel
+        selinux-policy-devel \
+        systemd-rpm-macros
 
-# Install requirements for building amznlinux srpms from epel repos
-RUN yum install -y ${EPEL_RELEASE_URL}
 COPY --from=golang /usr/local/go/ /usr/local/go/
 COPY --from=golang /go/ /go/
 
@@ -66,6 +84,14 @@ WORKDIR /root/rpmbuild
 COPY --from=amznlinux /amznsrpms /root/amznsrpms
 
 # Build all srpms
+### Notes:
+### - Delete the golang build requirement from the spec files
+### - Delete the BuildArch line from the spec files
+### - Delete unsupported Recommends from the spec files
+### - Delete the %changelog section from the amazon-ec2-net-utils spec file
+### - Delete unsupported "or" from amazon-ec2-net-utils spec file
+### - Disable debug packages
+### - Customize spec file for ec2-hibinit-agent so that it builds correctly
 RUN for SRPM in /root/amznsrpms/*.src.rpm ; do \
         pushd SOURCES \
         && rpm2cpio "$SRPM" | cpio -idv \
@@ -73,12 +99,22 @@ RUN for SRPM in /root/amznsrpms/*.src.rpm ; do \
         && popd \
         && SPEC=$(find SPECS -name *.spec -type f) \
         && sed -i "/BuildRequires: golang/d" "$SPEC" \
+        && sed -i "/BuildArch: .*/d" "$SPEC" \
+        && sed -i "/Recommends: .*/d" "$SPEC" \
         && echo "Building $SRPM" \
         && echo "SPEC file is $SPEC" \
+        && if [[ "$SRPM" =~ "amazon-ec2-net-utils" ]] ; then \
+        sed -i "/^%changelog$/q" "$SPEC" ; \
+        sed -i "s/Requires: (systemd-resolved or systemd < 250)/Requires: systemd-resolved/" "$SPEC" ; \
+        fi \
+        && if [[ "$SRPM" =~ "ec2-hibinit-agent" ]] ; then \
+        sed -i "s#%setup .*#cd %{_topdir}/BUILD\ngzip -dc %{_topdir}/SOURCES/ec2-hibinit-agent-%{version}.tar.gz | tar --no-same-owner -xvvf -\ncd ec2-hibinit-agent-%{version}\ncd %{_topdir}/BUILD/ec2-hibinit-agent-%{version}\nchown -R root.root .\nchmod -R a+rX,g-w,o-w .\ncp README.md ..#" "$SPEC" ; \
+        sed -i "s#%build.*#%build\ncd %{_topdir}/BUILD/ec2-hibinit-agent-%{version}#" "$SPEC" ; \
+        sed -i "s#%install.*#%install\ncd %{_topdir}/BUILD/ec2-hibinit-agent-%{version}#" "$SPEC" ; \
+        fi \
         && PYTHON=python3 \
-        && if [[ "$SRPM" =~ "ec2-hibinit-agent" ]] ; then PYTHON=python ; fi \
         && echo "Using $PYTHON" \
-        && rpmbuild -ba --define "__python $PYTHON" "$SPEC" \
+        && rpmbuild -ba --define "__python $PYTHON" --define "debug_package %{nil}" "$SPEC" \
         || exit $? \
         ; rm -rf SPECS/* SOURCES/* BUILD/* ; \
     done
@@ -128,11 +164,16 @@ RUN SPEL_RELEASE_BASEURL=file:///spel-packages/repo/ gomplate --file /root/spel-
 
 FROM centos:${CENTOS_VERSION}
 
+ARG EPEL_RELEASE_URL=https://dl.fedoraproject.org/pub/epel/epel-release-latest-7.noarch.rpm
+
 COPY --from=builder /root/repo /spel-packages/builder/repo
 COPY --from=builder /root/spel.repo /etc/yum.repos.d/
 COPY --from=builder /root/packages-built /spel-packages/
 COPY package-templates/spel-release/RPM-GPG-KEY-SPEL /etc/pki/rpm-gpg/
 WORKDIR /spel-packages
+
+# Some amznlinux rpms have requirements provided by epel
+RUN yum install -y ${EPEL_RELEASE_URL}
 
 RUN yum install -y \
         createrepo \

@@ -16,11 +16,13 @@ RUN yum install -y yum-utils \
 
 # Delete source rpms we cannot or do not want to build
 ### NOTES:
+### - amazon-efs-utils 1.x is not needed since 2.x is available
 ### - aws-cfn-bootstrap requires python-chevron and python3-daemon, which are not available for el7
 ### - aws-nitro-enclaves-acm requires rust/cargo, which is not available for el7
 ### - aws-nitro-enclaves-cli requires rust/cargo, which is not available for el7
 ### - awscli requires python3-toml, which is not available for el7
 RUN rm -f \
+  amazon-efs-utils-1.* \
   amazon-linux-onprem-* \
   amazon-linux-repo-cdn-* \
   amazon-linux-repo-s3-* \

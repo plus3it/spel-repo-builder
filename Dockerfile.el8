@@ -16,10 +16,12 @@ RUN dnf install -y dnf-utils \
 
 # Delete source rpms we do not want to build
 ### NOTES:
+### - amazon-efs-utils 1.x is not needed since 2.x is available
 ### - aws-cfn-bootstrap requires python-chevron, which is not available for el8
 ### - aws-cli requires the tomli library, which is not available for el8
 ### - aws-nitro-enclaves-acm-1.2.0-1 is a *second* version being downloaded, only need one at a time
 RUN rm -f \
+  amazon-efs-utils-1.* \
   amazon-linux-onprem-* \
   amazon-linux-repo-cdn-* \
   amazon-linux-repo-s3-* \

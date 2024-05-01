@@ -56,15 +56,18 @@ RUN yum install -y ${EPEL_RELEASE_URL}
 RUN yum install -y \
         acpid \
         ant \
+        cargo \
         dos2unix \
         git \
         java-1.8.0-openjdk \
         java-1.8.0-openjdk-devel \
         make \
+        openssl-devel \
         python2-devel \
         python3 \
         python3-devel \
         pytest \
+        rust \
         selinux-policy-devel \
         systemd-rpm-macros
 
@@ -91,7 +94,12 @@ COPY --from=amznlinux /amznsrpms /root/amznsrpms
 ### - Delete the %changelog section from the amazon-ec2-net-utils spec file
 ### - Delete unsupported "or" from amazon-ec2-net-utils spec file
 ### - Disable debug packages
+### - Customize spec file for amazon-cloudwatch-agent so that it builds correctly
+### - Customize spec file for amazon-efs-utils so that it builds correctly
+### - Customize spec file for aws-kinesis-agent so that it builds correctly
 ### - Customize spec file for ec2-hibinit-agent so that it builds correctly
+### - Customize spec file for ec2-instance-connect so that it builds correctly
+### - Customize spec file for ec2-instance-connect-selinux so that it builds correctly
 RUN for SRPM in /root/amznsrpms/*.src.rpm ; do \
         pushd SOURCES \
         && rpm2cpio "$SRPM" | cpio -idv \
@@ -103,11 +111,27 @@ RUN for SRPM in /root/amznsrpms/*.src.rpm ; do \
         && sed -i "/Recommends: .*/d" "$SPEC" \
         && echo "Building $SRPM" \
         && echo "SPEC file is $SPEC" \
-        && if [[ "$SRPM" =~ "amazon-ec2-net-utils" ]] ; then \
+        && cat "$SPEC" \
+        && if [[ "$SRPM" =~ "ec2-instance-connect-selinux" ]] ; then \
+        sed -i "s#%setup .*#cd %{_topdir}/BUILD\ngzip -dc %{_topdir}/SOURCES/%{name}-%{version}.tar.gz | tar --no-same-owner -xvvf -\nls -al\ncd %{_topdir}/BUILD/%{name}-%{version}\nchown -R root.root .\nchmod -R a+rX,g-w,o-w .#" "$SPEC" ; \
+        sed -i "s#%build.*#%build\ncd %{_topdir}/BUILD/%{name}-%{version}#" "$SPEC" ; \
+        sed -i "s#%install.*#%install\ncd %{_topdir}/BUILD/%{name}-%{version}#" "$SPEC" ; \
+        elif [[ "$SRPM" =~ "ec2-instance-connect" ]] ; then \
+        sed -i "s#%setup .*#cd %{_topdir}/BUILD\ngzip -dc %{_topdir}/SOURCES/%{name}-%{version}.tar.gz | tar --no-same-owner -xvvf -\nls -al\ncd %{_topdir}/BUILD/%{name}-%{version}\nchown -R root.root .\nchmod -R a+rX,g-w,o-w .#" "$SPEC" ; \
+        sed -i "s#%install.*#%install\ncd %{_topdir}/BUILD/%{name}-%{version}#" "$SPEC" ; \
+        elif [[ "$SRPM" =~ "aws-kinesis-agent" ]] ; then \
+        sed -i "s#%setup .*#cd %{_topdir}/BUILD\ngzip -dc %{_topdir}/SOURCES/%{name}-%{version}.tar.gz | tar --no-same-owner -xvvf -\nls -al\ncd %{_topdir}/BUILD/%{name}\nchown -R root.root .\nchmod -R a+rX,g-w,o-w .\ncp LICENSE.txt NOTICE.txt README.md ..#" "$SPEC" ; \
+        sed -i "s#%build.*#%build\ncd %{_topdir}/BUILD/%{name}#" "$SPEC" ; \
+        sed -i "s#%install.*#%install\ncd %{_topdir}/BUILD/%{name}#" "$SPEC" ; \
+        elif [[ "$SRPM" =~ "amazon-efs-utils" ]] ; then \
+        sed -i "s#%setup .*#cd %{_topdir}/BUILD\ngzip -dc %{_topdir}/SOURCES/%{name}.tar.gz | tar --no-same-owner -xvvf -\ncd %{_topdir}/BUILD/%{name}\nchown -R root.root .\nchmod -R a+rX,g-w,o-w .#" "$SPEC" ; \
+        elif [[ "$SRPM" =~ "amazon-cloudwatch-agent" ]] ; then \
+        sed -i "s#%setup .*#cd %{_topdir}/BUILD\ngzip -dc %{_topdir}/SOURCES/%{name}.tar.gz | tar --no-same-owner -xvvf -\nmkdir %{name}-%{version}\nmv %{name} %{name}-%{version}\ncd %{_topdir}/BUILD/%{name}-%{version}/%{name}\nchown -R root.root .\nchmod -R a+rX,g-w,o-w .#" "$SPEC" ; \
+        sed -i "s#%build.*#%build\ncd %{_topdir}/BUILD/%{name}-%{version}#" "$SPEC" ; \
+        elif [[ "$SRPM" =~ "amazon-ec2-net-utils" ]] ; then \
         sed -i "/^%changelog$/q" "$SPEC" ; \
         sed -i "s/Requires: (systemd-resolved or systemd < 250)/Requires: systemd-resolved/" "$SPEC" ; \
-        fi \
-        && if [[ "$SRPM" =~ "ec2-hibinit-agent" ]] ; then \
+        elif [[ "$SRPM" =~ "ec2-hibinit-agent" ]] ; then \
         sed -i "s#%setup .*#cd %{_topdir}/BUILD\ngzip -dc %{_topdir}/SOURCES/ec2-hibinit-agent-%{version}.tar.gz | tar --no-same-owner -xvvf -\ncd ec2-hibinit-agent-%{version}\ncd %{_topdir}/BUILD/ec2-hibinit-agent-%{version}\nchown -R root.root .\nchmod -R a+rX,g-w,o-w .\ncp README.md ..#" "$SPEC" ; \
         sed -i "s#%build.*#%build\ncd %{_topdir}/BUILD/ec2-hibinit-agent-%{version}#" "$SPEC" ; \
         sed -i "s#%install.*#%install\ncd %{_topdir}/BUILD/ec2-hibinit-agent-%{version}#" "$SPEC" ; \

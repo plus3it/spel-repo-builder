@@ -53,7 +53,7 @@ jobs:
       - name: Get pinned versions
         run: |
           echo "AMAZONLINUX_VERSION=$(make amazonlinux/version)" | tee -a "$GITHUB_ENV"
-          echo "CENTOS_VERSION=$(make centos${{ matrix.el_version }}/version)" | tee -a "$GITHUB_ENV"
+          echo "EL_VERSION=$(make el${{ matrix.el_version }}/version)" | tee -a "$GITHUB_ENV"
           echo "GOLANG_VERSION=$(make golang/version)" | tee -a "$GITHUB_ENV"
           echo "GOMPLATE_VERSION=$(make gomplate/version)" | tee -a "$GITHUB_ENV"
 
@@ -69,7 +69,7 @@ jobs:
           tags: spel-packages-el${{ matrix.el_version }}
           build-args: |
             AMZN_VERSION=${{ env.AMAZONLINUX_VERSION }}
-            CENTOS_VERSION=${{ env.CENTOS_VERSION }}
+            EL_VERSION=${{ env.EL_VERSION }}
             GOLANG_VERSION=${{ env.GOLANG_VERSION }}
             GOMPLATE_VERSION=${{ env.GOMPLATE_VERSION }}
             EPEL_RELEASE_URL=https://dl.fedoraproject.org/pub/epel/epel-release-latest-${{ matrix.el_version }}.noarch.rpm

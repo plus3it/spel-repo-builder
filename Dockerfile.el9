@@ -1,5 +1,5 @@
 ARG AMZN_VERSION=2023
-ARG CENTOS_VERSION=stream9
+ARG EL_VERSION=9
 ARG GOLANG_VERSION=latest
 ARG GOMPLATE_VERSION=stable
 
@@ -37,7 +37,7 @@ FROM hairyhenderson/gomplate:${GOMPLATE_VERSION} as gomplate
 
 FROM golang:${GOLANG_VERSION} as golang
 
-FROM quay.io/centos/centos:${CENTOS_VERSION} as builder
+FROM almalinux:${EL_VERSION} as builder
 
 SHELL ["/bin/bash", "-c"]
 
@@ -154,7 +154,7 @@ RUN SPEL_RELEASE_BASEURL=file:///spel-packages/repo/ gomplate --file /root/spel-
     && PACKAGES_BUILT=($(find RPMS/ -name *.rpm -type f -printf "%f ")) \
     && echo "${PACKAGES_BUILT[@]%%.rpm}" > /root/packages-built
 
-FROM quay.io/centos/centos:${CENTOS_VERSION}
+FROM almalinux:${EL_VERSION}
 
 ARG EPEL_RELEASE_URL=https://dl.fedoraproject.org/pub/epel/epel-release-latest-9.noarch.rpm
 

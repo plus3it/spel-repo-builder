@@ -3,7 +3,6 @@ pull_request_rules:
     conditions:
       - author~=dependabot\[bot\]
       - files~=^(Dockerfile.*|\.github/workflows/build\.yml|package-templates/)
-      - check-success=build-repo-el7
       - check-success=build-repo-el8
       - check-success=build-repo-el9
     actions:

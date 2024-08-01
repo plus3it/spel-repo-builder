@@ -28,7 +28,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        el_version: [7, 8, 9]
+        el_version: [8, 9]
     env:
       SPEL_RELEASE_RELEASE: 4
       AWS_DEFAULT_REGION: us-east-1

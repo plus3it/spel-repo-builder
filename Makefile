@@ -26,10 +26,6 @@ el8/%: EL8_VERSION ?= $(call match_pattern_in_file,$(DOCKERFILE_TOOLS),'almalinu
 el8/version:
 	@ echo $(EL8_VERSION)
 
-centos7/%: CENTOS7_VERSION ?= $(call match_pattern_in_file,$(DOCKERFILE_TOOLS),'centos:7','7@sha256:.*')
-centos7/version:
-	@ echo $(CENTOS7_VERSION)
-
 golang/% release/%: GOLANG_VERSION ?= $(call match_pattern_in_file,$(DOCKERFILE_TOOLS),'golang','$(SEMVER_PATTERN)')
 golang/version:
 	@ echo $(GOLANG_VERSION)

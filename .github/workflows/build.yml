@@ -39,6 +39,32 @@ jobs:
       DOCKER_NAME: spel-packages-el${{ matrix.el_version }}
       REPO_PATH: .repo/el${{ matrix.el_version }}
     steps:
+      - name: Maximize build space
+        run: |
+          set -xeuo pipefail
+          echo "Available storage:"
+          sudo df -h
+          echo
+          sudo rm -rf /usr/share/dotnet
+          sudo rm -rf /usr/local/lib/android
+          sudo rm -rf /opt/ghc
+          sudo rm -rf /usr/local/.ghcup
+          sudo rm -rf /opt/hostedtoolcache/CodeQL
+          sudo rm -rf /usr/local/share/boost
+          sudo rm -rf "$AGENT_TOOLSDIRECTORY"
+          sudo apt-get remove -y '^aspnetcore-.*' > /dev/null
+          sudo apt-get remove -y '^dotnet-.*' > /dev/null
+          sudo apt-get remove -y '^llvm-.*' > /dev/null
+          sudo apt-get remove -y 'php.*' > /dev/null
+          sudo apt-get remove -y '^mongodb-.*' > /dev/null
+          sudo apt-get remove -y '^mysql-.*' > /dev/null
+          sudo apt-get remove -y azure-cli google-chrome-stable firefox mono-devel libgl1-mesa-dri --fix-missing > /dev/null
+          sudo apt-get autoremove -y > /dev/null
+          sudo apt-get clean > /dev/null
+          sudo docker image prune --all --force > /dev/null
+          echo "Available storage:"
+          sudo df -h
+          echo
       - name: Clone this git repository
         uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332
 

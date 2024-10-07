@@ -6,6 +6,6 @@ FROM almalinux:9@sha256:1c718a4cd7bab3bdb069ddbbd1eb593a390e6932d51d0048a2f65563
 
 FROM hairyhenderson/gomplate:v4.1.0
 
-FROM golang:1.23.1
+FROM golang:1.23.2
 
 FROM plus3it/tardigrade-ci:0.25.3

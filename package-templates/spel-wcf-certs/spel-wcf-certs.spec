@@ -1,5 +1,5 @@
 Name:           spel-wcf-certs
-Version:        5.14
+Version:        5.15
 Release:        1%{?dist}
 Summary:        Installs and updates DISA WCF CA Certificates
 

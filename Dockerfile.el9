@@ -20,6 +20,7 @@ RUN dnf install -y dnf-utils \
 ### - aws-cfn-bootstrap requires python-chevron, which is not available for el9
 ### - aws-cli requires the tomli library, which is not available for el9
 ### - aws-nitro-enclaves-acm-1.2.0-1 is a *second* version being downloaded, only need one at a time
+### - aws-nitro-enclaves-acm-1.4.0-1 is a *second* version being downloaded, only need one at a time
 RUN rm -f \
   amazon-efs-utils-1.* \
   amazon-linux-onprem-* \
@@ -29,6 +30,7 @@ RUN rm -f \
   amazon-rpm-config-* \
   aws-cfn-bootstrap-* \
   aws-nitro-enclaves-acm-1.2.0-1* \
+  aws-nitro-enclaves-acm-1.4.0-1* \
   awscli-* \
   chrony-* \
   system-release-*

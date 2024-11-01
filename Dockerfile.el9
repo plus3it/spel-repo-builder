@@ -58,6 +58,7 @@ RUN dnf install -y \
         acpid \
         ant \
         cargo \
+        cargo-rpm-macros \
         clang \
         dos2unix \
         git \
@@ -70,6 +71,7 @@ RUN dnf install -y \
         python3-devel \
         python3-pytest \
         rust \
+        rust-toolset \
         selinux-policy-devel
 
 COPY --from=golang /usr/local/go/ /usr/local/go/

@@ -70,6 +70,7 @@ RUN dnf install -y \
         python3-devel \
         python3-pytest \
         rust \
+        rust-toolset \
         selinux-policy-devel
 
 COPY --from=golang /usr/local/go/ /usr/local/go/
@@ -103,6 +104,9 @@ RUN for SRPM in /root/amznsrpms/*.src.rpm ; do \
         && sed -i "/BuildArch: .*/d" "$SPEC" \
         && echo "Building $SRPM" \
         && echo "SPEC file is $SPEC" \
+        && if [[ "$SRPM" =~ "amazon-efs-utils" ]] ; then \
+        sed -i "s#%cargo_vendor_manifest#touch cargo-vendor.txt#" "$SPEC" ; \
+        fi \
         && if [[ "$SRPM" =~ "amazon-ec2-net-utils" ]] ; then sed -i "/^%changelog$/q" "$SPEC" ; fi \
         && PYTHON=python3 \
         && echo "Using $PYTHON" \

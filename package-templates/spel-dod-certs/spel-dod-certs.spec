@@ -1,5 +1,5 @@
 Name:           spel-dod-certs
-Version:        5.12
+Version:        5.13
 Release:        1%{?dist}
 Summary:        Installs and updates DoD CA Certificates
 

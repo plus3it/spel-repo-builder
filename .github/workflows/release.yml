@@ -29,7 +29,7 @@ jobs:
           echo "version=$(make release/version)" >> "$GITHUB_OUTPUT"
       - name: Create release
         if: steps.release.outputs.condition == 'true'
-        uses: softprops/action-gh-release@01570a1f39cb168c169c802c3bceb9e93fb10974
+        uses: softprops/action-gh-release@7b4da11513bf3f43f9999e90eabced41ab8bb048
         with:
           name: ${{ steps.release.outputs.version }}
           tag_name:  ${{ steps.release.outputs.version }}

@@ -60,7 +60,6 @@ RUN dnf install -y \
         acpid \
         ant \
         cargo \
-        cargo-rpm-macros \
         clang \
         dos2unix \
         git \

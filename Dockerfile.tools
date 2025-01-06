@@ -8,4 +8,4 @@ FROM hairyhenderson/gomplate:v4.3.0
 
 FROM golang:1.23.4
 
-FROM plus3it/tardigrade-ci:0.25.3
+FROM plus3it/tardigrade-ci:0.26.0

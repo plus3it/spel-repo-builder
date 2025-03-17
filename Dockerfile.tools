@@ -4,7 +4,7 @@ FROM almalinux:8@sha256:d7dbaf57916185b2be09e1eaa1156b543f3937164ffa08d7fdc020a0
 
 FROM almalinux:9@sha256:6d78b43b103e7ca90c43a790e73bdd421cec5ae0269b6051ef6836f4070b7476
 
-FROM hairyhenderson/gomplate:v4.3.0
+FROM hairyhenderson/gomplate:v4.3.1
 
 FROM golang:1.24.1
 

@@ -19,10 +19,7 @@ updates:
         patterns:
           - "*"
         exclude-patterns:
-          - "centos"
           - "almalinux"
     ignore:
-      - dependency-name: "centos"
-        update-types: ["version-update:semver-major"]
       - dependency-name: "almalinux"
         update-types: ["version-update:semver-major"]

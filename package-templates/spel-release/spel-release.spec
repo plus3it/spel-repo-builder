@@ -16,7 +16,7 @@ Source3:        spel-release
 
 BuildArch:      noarch
 BuildRequires:  rpm
-Requires:       redhat-release >=  {{.Env.SPEL_RELEASE_VERSION}}, redhat-release < {{ math.Add .Env.SPEL_RELEASE_VERSION 1 }}
+Requires:       ((redhat-release >=  {{.Env.SPEL_RELEASE_VERSION}} and redhat-release < {{ math.Add .Env.SPEL_RELEASE_VERSION 1 }}) or (system-release >= 2023 and system-release < 2024))
 Conflicts:      fedora-release
 
 %description
@@ -55,6 +55,9 @@ rm -rf $RPM_BUILD_ROOT
 /etc/pki/rpm-gpg/*
 
 %changelog
+* Wed Sep 6 2025 Loren Gordon <loren.gordon@plus3it.com>
+- Update "Requires" to allow installation on Amazon Linux 2023
+
 * Wed Sep 27 2023 Loren Gordon <loren.gordon@plus3it.com>
 - Fix "Requires" to restrict major version correctly
 

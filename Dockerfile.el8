@@ -3,7 +3,7 @@ ARG EL_VERSION=8
 ARG GOLANG_VERSION=latest
 ARG GOMPLATE_VERSION=stable
 
-FROM amazonlinux:${AMZN_VERSION} as amznlinux
+FROM amazonlinux:${AMZN_VERSION} AS amznlinux
 
 WORKDIR /amznsrpms
 
@@ -37,11 +37,11 @@ RUN rm -f \
   chrony-* \
   system-release-*
 
-FROM hairyhenderson/gomplate:${GOMPLATE_VERSION} as gomplate
+FROM hairyhenderson/gomplate:${GOMPLATE_VERSION} AS gomplate
 
-FROM golang:${GOLANG_VERSION} as golang
+FROM golang:${GOLANG_VERSION} AS golang
 
-FROM almalinux:${EL_VERSION} as builder
+FROM almalinux:${EL_VERSION} AS builder
 
 SHELL ["/bin/bash", "-c"]
 
@@ -131,9 +131,9 @@ COPY LICENSE /root/spel-repo-builder/package-templates/spel-wcf-certs
 ARG SPEL_RELEASE_BASEURL
 ARG SPEL_RELEASE_RELEASE
 
-ENV SPEL_RELEASE_BASEURL ${SPEL_RELEASE_BASEURL}
-ENV SPEL_RELEASE_RELEASE ${SPEL_RELEASE_RELEASE}
-ENV SPEL_RELEASE_VERSION 8
+ENV SPEL_RELEASE_BASEURL=${SPEL_RELEASE_BASEURL}
+ENV SPEL_RELEASE_RELEASE=${SPEL_RELEASE_RELEASE}
+ENV SPEL_RELEASE_VERSION=8
 
 RUN gomplate --input-dir /root/spel-repo-builder/package-templates --output-dir /root/spel-packages
 

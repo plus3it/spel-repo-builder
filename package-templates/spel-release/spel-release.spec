@@ -55,6 +55,9 @@ rm -rf $RPM_BUILD_ROOT
 /etc/pki/rpm-gpg/*
 
 %changelog
+* Fri Sep 8 2025 Loren Gordon <loren.gordon@plus3it.com>
+- Increases repo priority to prefer amazonlinux on AL2023
+
 * Wed Sep 6 2025 Loren Gordon <loren.gordon@plus3it.com>
 - Update "Requires" to allow installation on Amazon Linux 2023
 

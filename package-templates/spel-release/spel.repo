@@ -2,7 +2,7 @@
 name=spel
 baseurl={{.Env.SPEL_RELEASE_BASEURL}}
 gpgkey=file:///etc/pki/rpm-gpg/RPM-GPG-KEY-SPEL
-priority=10
+priority=20
 enabled=1
 gpgcheck=1
 repo_gpgcheck=1

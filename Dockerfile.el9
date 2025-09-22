@@ -22,6 +22,7 @@ RUN dnf install -y dnf-utils \
 ### - aws-nitro-enclaves-acm-1.2.0-1 does not support x86_64
 ### - aws-nitro-enclaves-acm-1.4.0-1 does not support x86_64
 ### - aws-nitro-enclaves-acm-1.4.0-2 does not support x86_64
+### - aws-nitro-tpm-tools requires cargo 1.85, which is not available for el8
 RUN rm -f \
   amazon-efs-utils-1.* \
   amazon-linux-onprem-* \
@@ -33,6 +34,7 @@ RUN rm -f \
   aws-nitro-enclaves-acm-1.2.0-1* \
   aws-nitro-enclaves-acm-1.4.0-1* \
   aws-nitro-enclaves-acm-1.4.0-2* \
+  aws-nitro-tpm-tools-* \
   awscli-* \
   chrony-* \
   system-release-*
@@ -108,7 +110,10 @@ RUN for SRPM in /root/amznsrpms/*.src.rpm ; do \
         && sed -i "/BuildArch: .*/d" "$SPEC" \
         && echo "Building $SRPM" \
         && echo "SPEC file is $SPEC" \
-        && if [[ "$SRPM" =~ "amazon-ec2-net-utils" ]] ; then sed -i "/^%changelog$/q" "$SPEC" ; fi \
+        && if [[ "$SRPM" =~ amazon-ec2-net-utils ]] ; then \
+        echo "Removing changelog section..."; \
+        sed -i "/^%changelog$/q" "$SPEC" ; \
+        fi \
         && PYTHON=python3 \
         && echo "Using $PYTHON" \
         && rpmbuild -ba --define "__python $PYTHON" --define "debug_package %{nil}" "$SPEC" \

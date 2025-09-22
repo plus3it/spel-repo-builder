@@ -168,7 +168,7 @@ jobs:
 
       - name: configure aws credentials
         if: github.event_name != 'pull_request'
-        uses: aws-actions/configure-aws-credentials@351d894493fd3289754a5471c0892ba92fa0abe2
+        uses: aws-actions/configure-aws-credentials@6e562ac9abb118b648a1c7765070c66a1c996eb6
         with:
           role-to-assume: arn:aws:iam::${{ secrets.AWS_ACCOUNT_ID }}:role/${{ secrets.AWS_ROLE_NAME }}
           aws-region: us-east-1

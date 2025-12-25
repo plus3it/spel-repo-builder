@@ -65,13 +65,17 @@ RUN dnf install -y \
         ant \
         cargo \
         clang \
+        cmake \
         dos2unix \
+        gcc \
+        gcc-c++ \
         git \
         java-1.8.0-openjdk \
         java-1.8.0-openjdk-devel \
         llvm \
         make \
         openssl-devel \
+        perl \
         python3 \
         python3-devel \
         python3-pytest \
@@ -100,6 +104,7 @@ COPY --from=amznlinux /amznsrpms /root/amznsrpms
 ### - Delete the BuildArch line from the spec files
 ### - Delete the %changelog section from the amazon-ec2-net-utils spec file
 ### - Disable debug packages
+### - Disable annotated builds for amazon-efs-utils due to incompatibility
 RUN for SRPM in /root/amznsrpms/*.src.rpm ; do \
         pushd SOURCES \
         && rpm2cpio "$SRPM" | cpio -idv \
@@ -111,15 +116,19 @@ RUN for SRPM in /root/amznsrpms/*.src.rpm ; do \
         && echo "Building $SRPM" \
         && echo "SPEC file is $SPEC" \
         && if [[ "$SRPM" =~ amazon-efs-utils ]] ; then \
-        echo "Patching to cargo vendor step..." ; \
+        echo "Patch cargo vendor step..." && \
         sed -i "s#%cargo_vendor_manifest#touch cargo-vendor.txt#" "$SPEC" ; \
         elif [[ "$SRPM" =~ amazon-ec2-net-utils ]] ; then \
-        echo "Removing changelog section..."; \
+        echo "Removing changelog section..." && \
         sed -i "/^%changelog$/q" "$SPEC" ; \
         fi \
         && PYTHON=python3 \
         && echo "Using $PYTHON" \
-        && rpmbuild -ba --define "__python $PYTHON" --define "debug_package %{nil}" "$SPEC" \
+        && if [[ "$SRPM" =~ amazon-efs-utils ]] ; then \
+        rpmbuild -ba --undefine "_annotated_build" --define "__python $PYTHON" --define "debug_package %{nil}" "$SPEC" ; \
+        else \
+        rpmbuild -ba --define "__python $PYTHON" --define "debug_package %{nil}" "$SPEC" ; \
+        fi \
         || exit $? \
         ; rm -rf SPECS/* SOURCES/* BUILD/* ; \
     done

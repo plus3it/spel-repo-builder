@@ -24,4 +24,4 @@ updates:
       - dependency-name: "almalinux"
         update-types: ["version-update:semver-major"]
       - dependency-name: "golang"
-        versions: ["1.*rc*"]
+        versions: ["rc"]

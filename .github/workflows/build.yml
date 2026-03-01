@@ -144,7 +144,7 @@ jobs:
 
       # upload repo artifact before testing them to troubleshoot failures
       - name: Store repo as artifact
-        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f
+        uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f
         with:
           name: spel-repo-el${{ matrix.el_version }}
           path: .repo/el${{ matrix.el_version }}

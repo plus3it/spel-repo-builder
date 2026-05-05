@@ -2,6 +2,7 @@ ARG AMZN_VERSION=2023
 ARG EL_VERSION=9
 ARG GOLANG_VERSION=latest
 ARG GOMPLATE_VERSION=stable
+ARG RUST_VERSION=latest
 
 FROM amazonlinux:${AMZN_VERSION} AS amznlinux
 
@@ -22,7 +23,7 @@ RUN dnf install -y dnf-utils \
 ### - aws-nitro-enclaves-acm-1.2.0-1 does not support x86_64
 ### - aws-nitro-enclaves-acm-1.4.0-1 does not support x86_64
 ### - aws-nitro-enclaves-acm-1.4.0-2 does not support x86_64
-### - aws-nitro-tpm-tools requires cargo 1.85, which is not available for el8
+### - aws-nitro-tpm-tools requires tpm2-tss >= 4, which is not available for el9
 RUN rm -f \
   amazon-efs-utils-1.* \
   amazon-linux-onprem-* \
@@ -42,6 +43,8 @@ RUN rm -f \
 FROM hairyhenderson/gomplate:${GOMPLATE_VERSION} AS gomplate
 
 FROM golang:${GOLANG_VERSION} AS golang
+
+FROM rust:${RUST_VERSION} AS rust
 
 FROM almalinux:${EL_VERSION} AS builder
 
@@ -63,7 +66,6 @@ RUN /usr/bin/crb enable
 RUN dnf install -y \
         acpid \
         ant \
-        cargo \
         clang \
         cmake \
         dos2unix \
@@ -79,7 +81,6 @@ RUN dnf install -y \
         python3 \
         python3-devel \
         python3-pytest \
-        rust \
         rust-toolset \
         selinux-policy-devel
 
@@ -90,6 +91,15 @@ ENV PATH="/go/bin:/usr/local/go/bin:${PATH}"
 ENV GOPATH=/go
 
 RUN go version
+
+COPY --from=rust /usr/local/cargo /usr/local/cargo
+COPY --from=rust /usr/local/rustup /usr/local/rustup
+
+ENV CARGO_HOME=/usr/local/cargo
+ENV RUSTUP_HOME=/usr/local/rustup
+ENV PATH="/usr/local/cargo/bin:${PATH}"
+
+RUN rustc --version && cargo --version
 
 # Setup the rpmbuild tree
 RUN rpmdev-setuptree
@@ -114,13 +124,16 @@ RUN for SRPM in /root/amznsrpms/*.src.rpm ; do \
         && sed -i "/BuildArch: .*/d" "$SPEC" \
         && echo "Building $SRPM" \
         && echo "SPEC file is $SPEC" \
-        && if [[ "$SRPM" =~ amazon-ec2-net-utils ]] ; then \
+        && if [[ "$SRPM" =~ amazon-efs-utils ]] ; then \
+        echo "Patch cargo binary path..." && \
+        sed -i "s#/usr/bin/cargo#/usr/local/cargo/bin/cargo#g" "$SPEC" ; \
+        elif [[ "$SRPM" =~ amazon-ec2-net-utils ]] ; then \
         echo "Removing changelog section..."; \
         sed -i "/^%changelog$/q" "$SPEC" ; \
         fi \
         && PYTHON=python3 \
         && echo "Using $PYTHON" \
-        && rpmbuild -ba --define "__python $PYTHON" --define "debug_package %{nil}" "$SPEC" \
+        && rpmbuild -ba --define "__python $PYTHON" --define "__cargo /usr/local/cargo/bin/cargo" --define "__rustc /usr/local/cargo/bin/rustc" --define "debug_package %{nil}" "$SPEC" \
         || exit $? \
         ; rm -rf SPECS/* SOURCES/* BUILD/* ; \
     done

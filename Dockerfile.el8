@@ -115,6 +115,9 @@ COPY --from=amznlinux /amznsrpms /root/amznsrpms
 ### - Delete the %changelog section from the amazon-ec2-net-utils spec file
 ### - Disable debug packages
 ### - Disable annotated builds for amazon-efs-utils due to incompatibility
+### - Delete the cargo_test for aws-workload-credentials-provider due to lib failure
+### - Patch tar xf step for aws-workload-credentials-provider to avoid ownership issues
+### - Delete the cargo_test for aws-workload-credentials-provider due to lib failure
 RUN for SRPM in /root/amznsrpms/*.src.rpm ; do \
         pushd SOURCES \
         && rpm2cpio "$SRPM" | cpio -idv \
@@ -123,23 +126,28 @@ RUN for SRPM in /root/amznsrpms/*.src.rpm ; do \
         && SPEC=$(find SPECS -name *.spec -type f) \
         && sed -i "/BuildRequires: golang/d" "$SPEC" \
         && sed -i "/BuildArch: .*/d" "$SPEC" \
-        && echo "Building $SRPM" \
-        && echo "SPEC file is $SPEC" \
+        && echo "[spel-repo-builder] Building $SRPM" \
+        && echo "[spel-repo-builder] SPEC file is $SPEC" \
         && if [[ "$SRPM" =~ amazon-efs-utils ]] ; then \
-        echo "Patch cargo vendor step..." && \
+        echo "[spel-repo-builder] Patch cargo vendor step..." && \
         sed -i "s#%cargo_vendor_manifest#touch cargo-vendor.txt#" "$SPEC" && \
-        echo "Patch cargo binary path..." && \
+        echo "[spel-repo-builder] Patch cargo binary path..." && \
         sed -i "s#/usr/bin/cargo#/usr/local/cargo/bin/cargo#g" "$SPEC" ; \
         elif [[ "$SRPM" =~ amazon-ec2-net-utils ]] ; then \
-        echo "Removing changelog section..." && \
+        echo "[spel-repo-builder] Removing changelog section..." && \
         sed -i "/^%changelog$/q" "$SPEC" ; \
+        elif [[ "$SRPM" =~ aws-workload-credentials-provider ]] ; then \
+        echo "[spel-repo-builder] Patch tar xf step..." && \
+        sed -i "s#tar fx %{SOURCE1}#tar fx %{SOURCE1} --no-same-owner #" "$SPEC" && \
+        echo "[spel-repo-builder] Skip cargo test step..." && \
+        sed -i "s#%cargo_test.*#echo Skipping cargo test step#g" "$SPEC" ; \
         fi \
         && PYTHON=python3 \
-        && echo "Using $PYTHON" \
+        && echo "[spel-repo-builder] Using $PYTHON" \
         && if [[ "$SRPM" =~ amazon-efs-utils ]] ; then \
-        rpmbuild -ba --undefine "_annotated_build" --define "__python $PYTHON" --define "__cargo /usr/local/cargo/bin/cargo" --define "__rustc /usr/local/cargo/bin/rustc" --define "debug_package %{nil}" "$SPEC" ; \
+        rpmbuild -ba --undefine "_annotated_build" --define "__python $PYTHON" --define "__cargo /usr/local/cargo/bin/cargo" --define "__rustc /usr/local/cargo/bin/rustc" --define "__rustdoc /usr/local/cargo/bin/rustdoc" --define "debug_package %{nil}" "$SPEC" ; \
         else \
-        rpmbuild -ba --define "__python $PYTHON" --define "__cargo /usr/local/cargo/bin/cargo" --define "__rustc /usr/local/cargo/bin/rustc" --define "debug_package %{nil}" "$SPEC" ; \
+        rpmbuild -ba --define "__python $PYTHON" --define "__cargo /usr/local/cargo/bin/cargo" --define "__rustc /usr/local/cargo/bin/rustc" --define "__rustdoc /usr/local/cargo/bin/rustdoc" --define "debug_package %{nil}" "$SPEC" ; \
         fi \
         || exit $? \
         ; rm -rf SPECS/* SOURCES/* BUILD/* ; \

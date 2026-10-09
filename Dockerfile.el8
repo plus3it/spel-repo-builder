@@ -115,7 +115,10 @@ COPY --from=amznlinux /amznsrpms /root/amznsrpms
 ### - Delete the %changelog section from the amazon-ec2-net-utils spec file
 ### - Disable debug packages
 ### - Disable annotated builds for amazon-efs-utils due to incompatibility
+### - Remove the "--" from %cargo_build in amazon-efs-utils, since the EL8 macro passes arguments straight to cargo
+### - Delete the rust and cargo build requirements from aws-nitro-enclaves-cli, since the pinned rust image is newer than the rust-toolset RPMs
 ### - Delete the cargo_test for aws-workload-credentials-provider due to lib failure
+### - Replace the util-linux-core requirement in ec2-hibinit-agent with util-linux, since EL8 does not split out util-linux-core (EL9 and AL2023 do) and its util-linux package already provides the same utilities
 ### - Patch tar xf step for aws-workload-credentials-provider to avoid ownership issues
 ### - Delete the cargo_test for aws-workload-credentials-provider due to lib failure
 RUN for SRPM in /root/amznsrpms/*.src.rpm ; do \
@@ -132,7 +135,9 @@ RUN for SRPM in /root/amznsrpms/*.src.rpm ; do \
         echo "[spel-repo-builder] Patch cargo vendor step..." && \
         sed -i "s#%cargo_vendor_manifest#touch cargo-vendor.txt#" "$SPEC" && \
         echo "[spel-repo-builder] Patch cargo binary path..." && \
-        sed -i "s#/usr/bin/cargo#/usr/local/cargo/bin/cargo#g" "$SPEC" ; \
+        sed -i "s#/usr/bin/cargo#/usr/local/cargo/bin/cargo#g" "$SPEC" && \
+        echo "[spel-repo-builder] Patch cargo_build argument separator..." && \
+        sed -i "s#%cargo_build -- #%cargo_build #" "$SPEC" ; \
         elif [[ "$SRPM" =~ amazon-ec2-net-utils ]] ; then \
         echo "[spel-repo-builder] Removing changelog section..." && \
         sed -i "/^%changelog$/q" "$SPEC" ; \
@@ -141,6 +146,12 @@ RUN for SRPM in /root/amznsrpms/*.src.rpm ; do \
         sed -i "s#tar fx %{SOURCE1}#tar fx %{SOURCE1} --no-same-owner #" "$SPEC" && \
         echo "[spel-repo-builder] Skip cargo test step..." && \
         sed -i "s#%cargo_test.*#echo Skipping cargo test step#g" "$SPEC" ; \
+        elif [[ "$SRPM" =~ aws-nitro-enclaves-cli ]] ; then \
+        echo "[spel-repo-builder] Remove rust/cargo build requirements..." && \
+        sed -i -E "/^BuildRequires:\s+(rust|cargo)\b/d" "$SPEC" ; \
+        elif [[ "$SRPM" =~ ec2-hibinit-agent ]] ; then \
+        echo "[spel-repo-builder] Replace util-linux-core requirement with util-linux..." && \
+        sed -i -E "s/^(Requires:\s+)util-linux-core\b/\1util-linux/" "$SPEC" ; \
         fi \
         && PYTHON=python3 \
         && echo "[spel-repo-builder] Using $PYTHON" \

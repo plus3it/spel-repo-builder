@@ -116,6 +116,7 @@ COPY --from=amznlinux /amznsrpms /root/amznsrpms
 ### - Disable debug packages
 ### - Patch tar xf step for aws-workload-credentials-provider to avoid ownership issues
 ### - Delete the cargo_test for aws-workload-credentials-provider due to lib failure
+### - Delete the rust and cargo build requirements from aws-nitro-enclaves-cli, since the pinned rust image is newer than the rust-toolset RPMs
 RUN for SRPM in /root/amznsrpms/*.src.rpm ; do \
         pushd SOURCES \
         && rpm2cpio "$SRPM" | cpio -idv \
@@ -137,6 +138,9 @@ RUN for SRPM in /root/amznsrpms/*.src.rpm ; do \
         sed -i "s#tar fx %{SOURCE1}#tar fx %{SOURCE1} --no-same-owner #" "$SPEC" && \
         echo "[spel-repo-builder] Skip cargo test step..." && \
         sed -i "s#%cargo_test.*#echo Skipping cargo test step#g" "$SPEC" ; \
+        elif [[ "$SRPM" =~ aws-nitro-enclaves-cli ]] ; then \
+        echo "[spel-repo-builder] Remove rust/cargo build requirements..." && \
+        sed -i -E "/^BuildRequires:\s+(rust|cargo)\b/d" "$SPEC" ; \
         fi \
         && PYTHON=python3 \
         && echo "[spel-repo-builder] Using $PYTHON" \

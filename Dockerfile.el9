@@ -23,6 +23,7 @@ RUN dnf install -y dnf-utils \
 ### - aws-nitro-enclaves-acm-1.2.0-1 does not support x86_64
 ### - aws-nitro-enclaves-acm-1.4.0-1 does not support x86_64
 ### - aws-nitro-enclaves-acm-1.4.0-2 does not support x86_64
+### - aws-nitro-enclaves-acm-1.5.0-1 does not support x86_64
 ### - aws-nitro-tpm-tools requires tpm2-tss >= 4, which is not available for el9
 RUN rm -f \
   amazon-efs-utils-1.* \
@@ -35,6 +36,7 @@ RUN rm -f \
   aws-nitro-enclaves-acm-1.2.0-1* \
   aws-nitro-enclaves-acm-1.4.0-1* \
   aws-nitro-enclaves-acm-1.4.0-2* \
+  aws-nitro-enclaves-acm-1.5.0-1* \
   aws-nitro-tpm-tools-* \
   awscli-* \
   chrony-* \
